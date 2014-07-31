@@ -16,6 +16,9 @@
  */
 define({
     root: ({
+        map: {
+            error: "Unable to create map"
+        },
         tooltips: {
             search: "Find",  // Command button to open a dialog box for finding a feature or an address (depending on app)
             locate: "Current location",  // Command button to zoom and pan to the current geographical position reported by the browser
