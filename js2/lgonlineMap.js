@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineMap", [
+define([
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",

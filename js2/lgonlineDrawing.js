@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineDrawing", [
+define([
     "dojo/Deferred",
     "dojo/_base/Color",
     "dojo/on",
