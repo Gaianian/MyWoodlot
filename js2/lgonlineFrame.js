@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineFrame", [
+define([
     "dojo/dom-construct",
     "dojo/on",
     "dojo/dom-style",

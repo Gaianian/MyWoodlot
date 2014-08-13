@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineOutput", [
+define([
     "dojo/dom-construct",
     "dojo/dom-class",
     "dojo/_base/array",

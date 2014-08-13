@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineMap", [
+define([
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
@@ -206,8 +206,8 @@ define("js/lgonlineMap", [
 
             // Override the initial extent from the configuration with URL extent values;
             // need to have a complete set of the latter
-            if (this.appConfig.urlValues.ex) {
-                urlExtent = this.getExtentsFromString(this.appConfig.urlValues.ex);
+            if (this.appConfig.ex) {
+                urlExtent = this.getExtentsFromString(this.appConfig.ex);
                 if (urlExtent) {
                     extent = urlExtent;
                 }

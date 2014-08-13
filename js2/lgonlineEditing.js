@@ -16,7 +16,7 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineEditing", [
+define([
     "dojo/dom-construct",
     "dojo/_base/array",
     "dojo/_base/lang",
