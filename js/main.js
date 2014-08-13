@@ -16,9 +16,10 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom", "dojo/dom-class", "dojo/on",
-    "application/templateOptions", "dojo/Deferred", "dojo/request/xhr", "dojo/_base/array", "dojo/_base/fx", "dojo/topic", "esri/lang", "dojo/i18n!esri/nls/jsapi"], function (
-    ready,
+define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom", "dojo/dom-class", "dojo/on",
+    "application/templateOptions", "dojo/Deferred", "dojo/request/xhr", "dojo/_base/array",
+    "dojo/_base/fx", "dojo/topic", "esri/lang", "dojo/i18n!esri/nls/jsapi",
+    "dojo/domReady!"], function (
     declare,
     lang,
     arcgisUtils,
@@ -37,7 +38,7 @@ define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/util
     return declare(null, {
         config: {},
         startup: function (config, appResponse) {
-            var filename, waitForUI = new Deferred(), error, uiSource = "none";
+            var filename, waitForUI = new Deferred(), uiSource = "none";
 
             // config will contain application and user defined info for the template such as i18n strings, the web map id
             // and application id
@@ -62,6 +63,9 @@ define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/util
                     window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.i18n.map, ["error"]));
                     window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.i18n.messages, ["unableToLaunchApp"]));
                 }
+
+                // Get the UI elements code
+                this.uiElementsReady = this._getUIElements();
 
                 // The app recognizes three URL parameters for setting up its webmap and user interface:
                 // "webmap", "app", "appid". It uses the following rules to disambiguate the parameters:
@@ -144,61 +148,45 @@ define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/util
                     );
                 }
 
-                // document ready
-                ready(lang.hitch(this, function () {
-                    waitForUI.then(lang.hitch(this, function () {
-                        // Now that we have the webmap id, get its info
-                        var waitForWebmap = new Deferred();
-                        if (this.config.webmap) {
-                            arcgisUtils.getItem(this.config.webmap).then(lang.hitch(this, function (itemInfo) {
-                                this.config.itemInfo = itemInfo;
-                                waitForWebmap.resolve(itemInfo);
-                            }), function (error) {
-                                if (!error) {
-                                    error = new Error("Error retrieving webmap.");
-                                }
-                                waitForWebmap.reject(error);
-                            });
-                        } else {
-                            error = new Error("Webmap undefined.");
-                            waitForWebmap.reject(error);
+                // Wait for the UI definition to load
+                waitForUI.then(lang.hitch(this, function () {
+                    // Now that we have the webmap id, get its info
+                    var waitForWebmap = new Deferred();
+                    if (this.config.webmap) {
+                        arcgisUtils.getItem(this.config.webmap).then(lang.hitch(this, function (itemInfo) {
+                            this.config.itemInfo = itemInfo;
+                            waitForWebmap.resolve(itemInfo);
+                        }), function (error) {
+                            waitForWebmap.reject(error || new Error("Error retrieving webmap."));
+                        });
+                    } else {
+                        waitForWebmap.reject(new Error("Webmap undefined."));
+                    }
+
+                    // Now that we have the webmap info, create the map
+                    waitForWebmap.then(lang.hitch(this, function () {
+                        // For creating the webmap, supply either the webmap id or, if available, the item info
+                        var itemInfo = this.config.itemInfo || this.config.webmap;
+
+                        console.log(uiSource);
+                        // Testpoint #2: UI selected; ready to create map
+                        if (this.config.SendToTest) {
+                            window.external[this.config.SendToTest]("status 2. UI and webmap retrieved; ready to create map; " + uiSource);
+                            window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.item, ["id", "owner", "title"]));
+                            window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.itemData, ["applicationProperties"]));
                         }
 
-                        // Now that we have the webmap info, create the map
-                        waitForWebmap.then(lang.hitch(this, function () {
-                            // For creating the webmap, supply either the webmap id or, if available, the item info
-                            var itemInfo = this.config.itemInfo || this.config.webmap;
-
-                            console.log(uiSource);
-                            // Testpoint #2: UI selected; ready to create map
-                            if (this.config.SendToTest) {
-                                window.external[this.config.SendToTest]("status 2. UI and webmap retrieved; ready to create map; " + uiSource);
-                                window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.item, ["id", "owner", "title"]));
-                                window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.itemData, ["applicationProperties"]));
-                            }
-
-                            // Get the UI elements code
-                            this.uiElementsReady = this._getUIElements();
-
-                            // Create the webmap
-                            this._createWebMap(itemInfo);
-                        }), lang.hitch(this, function (error) {
-                            if (!error) {
-                                error = new Error("Error retrieving webmap.");
-                            }
-                            this.reportError(error);
-                        }));
-
+                        // Create the webmap
+                        this._createWebMap(itemInfo);
                     }), lang.hitch(this, function (error) {
-                        if (!error) {
-                            error = new Error("Error retrieving application configuration.");
-                        }
-                        this.reportError(error);
+                        this.reportError(error || new Error("Error retrieving webmap."));
                     }));
+
+                }), lang.hitch(this, function (error) {
+                    this.reportError(error || new Error("Error retrieving application configuration."));
                 }));
             } else {
-                error = new Error("Main:: Config is not defined");
-                this.reportError(error);
+                this.reportError(new Error("Main:: Config is not defined"));
             }
         },
         reportError: function (error) {
@@ -273,9 +261,7 @@ define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/util
             var deferred = new Deferred();
 
             require(["js/lgonlineApp"], function () {
-                ready(function () {
-                    deferred.resolve(true);
-                });
+                deferred.resolve(true);
             });
 
             return deferred.promise;
@@ -450,7 +436,6 @@ define(["dojo/ready", "dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/util
             // When the UI elements are ready, we can build the UI
             this.uiElementsReady.then(
                 lang.hitch(this, function (results) {
-
                     // Testpoint #4: UI elements ready
                     if (this.config.SendToTest) {
                         window.external[this.config.SendToTest]("status 4. UI elements ready");
