@@ -181,8 +181,11 @@ define([
             //   1. webmap visible extent when saved
             //   2. application extent on the application item
             //   3. configured in LGMap item
-            //   4. supplied in the URL using the format ex=xmin,ymin,xmax,ymax[,wkid=102100],
+            //   4. supplied in the URL using the format ex=xmin,ymin,xmax,ymax[,wkid]
             //      e.g., ex=-9279312,5238092,-9259324,5256972,102100
+            //      or as ex=xmin,ymin,xmax,ymax[,wkt]
+            //      e.g., ex=1028046,1861694,1028981,1862568,PROJCS%5B%22NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201%22%2CGEOGCS%5B%22...%5D%2CUNIT%5B%22Foot_US%22%2C0.3048006096012192%5D%5D
+            //      If wkid and wkt are not supplied, the coordinates are intepreted as wkid 102100
             if (this.xmin && this.ymin && this.xmax && this.ymax) {
                 try {
                     extent = {
@@ -461,13 +464,17 @@ define([
                 };
 
                 extent.spatialReference = {};
-                if (minmax.length > 4) {
+                if (minmax.length === 5) {
                     wkid = Number(minmax[4]);
                     if (!isNaN(wkid)) {
                         extent.spatialReference.wkid = wkid;
                     } else {
-                        extent.spatialReference.wkt = decodeURIComponent(minmax[4]);
+                        extent.spatialReference.wkid = 102100;
                     }
+                } else if (minmax.length > 5) {
+                    // The boilerplate unescapes url params, so our split above also splits the wkt;
+                    // rejoin the parts of the wkt
+                    extent.spatialReference.wkt = minmax.slice(4).join(",");
                 } else {
                     extent.spatialReference.wkid = 102100;
                 }
