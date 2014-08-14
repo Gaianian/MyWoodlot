@@ -437,6 +437,11 @@ define([
             var minmax, extent = null, wkid, iPROJCS;
 
             // Get the four to five comma-separated parts
+            // If extentString is an array, then the URL contained more than one
+            // ex parameter; the last one is what we want
+            if (extentString instanceof Array) {
+                extentString = extentString[extentString.length - 1];
+            }
             minmax = extentString.split(",");
 
             // If there are no commas, then they're escaped.
