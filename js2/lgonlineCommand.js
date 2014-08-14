@@ -2496,8 +2496,40 @@ define([
          * @override
          */
         getUrlToShare: function () {
-            var baseUrl = this.getAppUrl();
+            var baseUrl = this.removeMapExtentsArg(this.getAppUrl());
             return baseUrl + (baseUrl.indexOf("?") < 0 ? "?" : "&") + this.getMapExtentsArg();
+        },
+
+        /**
+         * Strips the "ex" parameter out of a URL's parameters
+         * @param (string) url URL to modify
+         * @return {string} Updated URL
+         * @memberOf js.LGShareAppExtents
+         */
+        removeMapExtentsArg: function (url) {
+            // Separate base of URL from its parameters
+            var urlParts = url.split("?", 2);
+            if (urlParts.length === 1) {
+                return url;
+            }
+
+            // Clean up the parameters
+            var params = "&" + urlParts[1] + "&";
+            for (;;) {
+                var iStart = params.indexOf("&ex=");
+                if (iStart < 0) {
+                    break;
+                }
+                var iEnd = params.indexOf("&", iStart + 1);
+                params = params.substring(0, iStart) + params.substring(iEnd);
+            }
+
+            // Reassemble URL
+            url = urlParts[0];
+            if (params.length > 2) {
+                url += "?" + params.substring(1, params.length - 1);
+            }
+            return url
         },
 
         /**
