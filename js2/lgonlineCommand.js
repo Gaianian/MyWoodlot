@@ -21,6 +21,7 @@ define([
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
+    "dojo/dom-geometry",
     "dojo/Deferred",
     "dojo/DeferredList",
     "dojo/dom-style",
@@ -33,6 +34,8 @@ define([
     "dijit/layout/ContentPane",
     "dojox/gfx",
     "dojox/gfx/utils",
+    "dgrid/Grid",
+    "dgrid/Selection",
     "esri/dijit/Legend",
     "esri/dijit/BasemapGallery",
     "esri/dijit/Basemap",
@@ -51,6 +54,7 @@ define([
     domConstruct,
     dom,
     on,
+    domGeom,
     Deferred,
     DeferredList,
     domStyle,
@@ -63,6 +67,8 @@ define([
     ContentPane,
     gfx,
     gfxUtils,
+    Grid,
+    Selection,
     Legend,
     BasemapGallery,
     Basemap,
@@ -2247,11 +2253,10 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, resultsListBox, table, tableBody,
-                searcher, lastSearchString, lastSearchTime, stagedSearch;
+            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
 
+            // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
-
             domConstruct.create("label",
                 {"for": textBoxId, innerHTML: this.checkForSubstitution(this.showPrompt)}, this.rootId);
             this.searchEntryTextBox = new TextBox({
@@ -2263,14 +2268,10 @@ define([
             }).placeAt(this.rootId);
             domStyle.set(this.searchEntryTextBox.domNode, "width", "99%");
 
-            resultsListBox = domConstruct.create("div",
-                {className: this.resultsListBoxClass}, this.rootId);
-            table = domConstruct.create("table",
-                {className: this.resultsListTableClass}, resultsListBox);
-            tableBody = domConstruct.create("tbody",
-                {className: this.resultsListBodyClass}, table);
-            touchScroll(resultsListBox);
+            // Prepare the results list
+            this.prepareResultsBox();
 
+            // Prepare the searcher
             searcher = this.lgById(this.searcher);
             lastSearchString = "";
             lastSearchTime = 0;
@@ -2281,7 +2282,7 @@ define([
                 var searchText = pThis.searchEntryTextBox.get("value");
                 if (lastSearchString !== searchText) {
                     lastSearchString = searchText;
-                    domConstruct.empty(tableBody);
+                    pThis.clearResultsBox();
 
                     // Clear any staged search
                     clearTimeout(stagedSearch);
@@ -2290,12 +2291,10 @@ define([
                         // Stage a new search, which will launch if no new searches show up
                         // before the timeout
                         stagedSearch = setTimeout(function () {
-                            var searchingPlaceholder, thisSearchTime, now;
+                            var thisSearchTime, now;
 
-                            searchingPlaceholder = domConstruct.create("tr", null, tableBody);
-                            domConstruct.create("td",
-                                {className: pThis.resultsListSearchingClass}, searchingPlaceholder);
-
+                            // Launch a search after recording when the search began
+                            pThis.showSearchingBusy();
                             thisSearchTime = lastSearchTime = (new Date()).getTime();
                             searcher.search(searchText, function (results) {
                                 var resultsList;
@@ -2306,7 +2305,7 @@ define([
                                 }
 
                                 // Show results
-                                domConstruct.empty(tableBody);  // to get rid of searching indicator
+                                pThis.hideSearchingBusy();
                                 resultsList = searcher.toList(results, searchText);
 
                                 now = (new Date()).getTime();
@@ -2314,25 +2313,14 @@ define([
                                     + (now - thisSearchTime) / 1000 + " secs");
 
                                 if (resultsList.length > 0) {
-                                    array.forEach(resultsList, function (item) {
-                                        var tableRow, tableCell;
-
-                                        tableRow = domConstruct.create("tr",
-                                            null, tableBody);
-                                        tableCell = domConstruct.create("td",
-                                            {className: pThis.resultsListEntryClass, innerHTML: item.label}, tableRow);
-                                        pThis.applyTheme(true, tableCell);
-                                        on(tableCell, "click", function () {
-                                            searcher.publish(pThis.publish, item.data);
-                                        });
-                                    });
+                                    pThis.showResults(searcher, resultsList);
                                 }
                             }, function (error) {
                                 // Query failure
                                 pThis.log("LGSearchBoxByText_1: " + error.message);
 
                                 lastSearchString = "";  // so that we can quickly repeat this search
-                                domConstruct.empty(tableBody);  // to get rid of searching indicator
+                                pThis.hideSearchingBusy();
                             });
                         }, 1000);
                     }
@@ -2341,15 +2329,207 @@ define([
         },
 
         /**
+         * Prepares the area where the search results will be shown.
+         * @memberOf js.LGSearchBoxByText#
+         */
+        prepareResultsBox: function () {
+            var resultsListBox, table;
+
+            resultsListBox = domConstruct.create("div",
+                {className: this.resultsListBoxClass}, this.rootId);
+            table = domConstruct.create("table",
+                {className: this.resultsListTableClass}, resultsListBox);
+            this.tableBody = domConstruct.create("tbody",
+                {className: this.resultsListBodyClass}, table);
+            touchScroll(resultsListBox);
+        },
+
+        /**
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchBoxByText#
+         */
+        clearResultsBox: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchBoxByText#
+         */
+        showSearchingBusy: function () {
+            var searchingPlaceholder = domConstruct.create("tr", null, this.tableBody);
+            domConstruct.create("td",
+                {className: this.resultsListSearchingClass}, searchingPlaceholder);
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchBoxByText#
+         */
+        hideSearchingBusy: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchBoxByText#
+         */
+        showResults: function (searcher, resultsList) {
+            var pThis = this;
+
+            array.forEach(resultsList, function (item) {
+                var tableRow, tableCell;
+
+                // Create a row showing a result's label and with its data attached
+                // to a row-click handler
+                tableRow = domConstruct.create("tr",
+                    null, pThis.tableBody);
+                tableCell = domConstruct.create("td",
+                    {className: pThis.resultsListEntryClass, innerHTML: item.label}, tableRow);
+                pThis.applyTheme(true, tableCell);
+                on(tableCell, "click", function () {
+                    searcher.publish(pThis.publish, item.data);
+                });
+            });
+        },
+
+        /**
          * Toggles the graphic's visibility
          * @memberOf js.LGSearchBoxByText#
-        * @override
+         * @override
          */
         toggleVisibility: function () {
             this.inherited(arguments);
             if (this.getIsVisible()) {
                 this.searchEntryTextBox.focus();
             }
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchBoxByTextGrid", js.LGSearchBoxByText, {
+        /**
+         * Constructs an LGSearchBoxByTextGrid.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchBoxByTextGrid
+         * @extends js.LGSearchBoxByText
+         * @classdesc
+         * Provides a UI display of a prompted text box followed by a
+         * grid of results. Works with subclass of LGSearch, which provides
+         * the searching and results formatting for this display.
+         */
+        constructor: function () {
+        },
+
+        /**
+         * Prepares the area where the search results will be shown.
+         * @memberOf js.LGSearchBoxByTextGrid#
+         * @override
+         */
+        prepareResultsBox: function () {
+            var CustomGrid, resultsListBox, resultsListBoxSize, gridDiv;
+
+            // Create a new constructor by mixing in the desired dgrid components
+            CustomGrid = declare([ Grid, Selection ]);
+
+            // Now, create an instance of our custom grid which
+            // have the features we added!
+            resultsListBox = domConstruct.create("div",
+                {className: this.resultsListBoxClass, style: {overflow:"none"}}, this.rootId);
+            resultsListBoxSize = domGeom.getMarginBox(resultsListBox);
+
+            gridDiv = domConstruct.create("div",
+                {style: {width:"198px", height:"172px"}}, resultsListBox);
+            this.grid = new CustomGrid({
+                columns: {
+                    col1: "",
+                    col2: ""
+                },
+                selectionMode: "single" // for Selection; only select a single row at a time
+            }, gridDiv);
+        },
+
+        /**
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchBoxByTextGrid#
+         * @override
+         */
+        clearResultsBox: function () {
+            // Clear the row-click handler
+            if (this.rowClick) {
+                this.rowClick.remove();
+                this.rowClick = null;
+            }
+
+            // Clear the rows
+            this.grid.refresh();
+            this.grid.renderArray([]);
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchBoxByTextGrid#
+         * @override
+         */
+        showSearchingBusy: function () {
+            console.log("searching...");
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchBoxByTextGrid#
+         * @override
+         */
+        hideSearchingBusy: function () {
+            console.log("search done");
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchBoxByTextGrid#
+         * @override
+         */
+        showResults: function (searcher, resultsList) {
+            var pThis = this, rows = [], i;
+
+            // Enable grid row selection to publish the search result event
+            this.rowClick = this.grid.on(".dgrid-row:click", function(event) {
+                var row = pThis.grid.row(event);
+                searcher.publish(pThis.publish, row.data.data);
+            });
+
+            // Format the resultsList for the grid
+            var i = 1;
+            array.forEach(resultsList, function (item) {
+                var row = {};
+                row.col1 = i.toString(); ++i;
+                row.col2 = item.label;
+                row.data = item.data;
+                rows.push(row);
+            });
+
+            // Add the rows to the grid; recommendation from kfranqueiro
+            // (https://github.com/SitePen/dgrid/issues/170#issuecomment-21080121)
+            // is to refresh before renderArray when re-using a grid
+            this.grid.refresh();
+            this.grid.renderArray(rows);
+
+            // Set the sort here rather than in the grid constructor so that the UI sort direction
+            // arrow appears; if one doesn't sort or sets the sort in the constructor, the arrow
+            // doesn't appear until the user clicks the column heading, and if the heading has
+            // empty text, it isn't even rendered until the click
+            this.grid.set("sort", "col1", false);
         }
     });
 
