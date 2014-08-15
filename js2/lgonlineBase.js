@@ -17,18 +17,22 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
+    "dojo/dom-geometry",
     "dojo/dom-style",
     "dojo/dom-class",
     "dojo/_base/array",
     "dojo/topic",
     "dojo/_base/lang"
 ], function (
+    declare,
     domConstruct,
     dom,
     on,
+    domGeom,
     domStyle,
     domClass,
     array,
@@ -38,7 +42,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGObject", null, {
+    declare("js.LGObject", null, {
         /**
          * Constructs an LGObject.
          *
@@ -68,7 +72,7 @@ define([
             // args.appConfig.itemInfo. After the safeMixin, the contents of args become
             // contents of the object.
             if (undefined !== args) {  // Guard needed by IE7, IE8
-                dojo.safeMixin(this, args);
+                declare.safeMixin(this, args);
             }
 
             // Check for prerequisites before continuing
@@ -367,7 +371,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGGraphic", js.LGObject, {
+    declare("js.LGGraphic", js.LGObject, {
         /**
          * Constructs an LGGraphic.
          *
@@ -505,7 +509,7 @@ define([
                     width: this.rootDiv.parentNode.clientWidth + "px",
                     height: this.rootDiv.parentNode.clientHeight + "px"
                 };
-                dojo.style(this.rootDiv, styleAttrs);
+                domStyle.set(this.rootDiv, styleAttrs);
             }
         },
 
@@ -536,8 +540,8 @@ define([
             if (overDiv && underDiv) {
                 // Inspired by the Dojo reference guide
                 // http://dojotoolkit.org/reference-guide/1.7/dojo/position.html#center-a-dom-node-over-another
-                overDivBox = dojo.marginBox(overDiv);
-                underDivBox = dojo.marginBox(underDiv);
+                overDivBox = domGeom.getMarginBox(overDiv);
+                underDivBox = domGeom.getMarginBox(underDiv);
 
                 styleAttrs = {};
                 if (typeof horizOffset === "number") {
@@ -554,7 +558,7 @@ define([
                         styleAttrs = pThis.insertVertPositioningStyle(styleAttrs, vertOff, overDivBox, underDivBox);
                     });
                 }
-                dojo.style(overDiv, styleAttrs);
+                domStyle.set(overDiv, styleAttrs);
             }
         },
 
@@ -567,9 +571,9 @@ define([
          * @param {number} horizOffset Horizontal pixel offset of
          *        overDiv: >0 pixels from left side; 0 is center; <0
          *        pixels from right side
-         * @param {object} overDivBox dojo.marginBox of div to be
+         * @param {object} overDivBox domGeom.getMarginBox of div to be
          *        positioned
-         * @param {object} underDivBox dojo.marginBox of div over which
+         * @param {object} underDivBox domGeom.getMarginBox of div over which
          *        overDiv is to be positioned
          * @return {object} Updated styleAttrs structure
          * @memberOf js.LGGraphic#
@@ -594,9 +598,9 @@ define([
          * @param {number} vertOffset Vertical pixel offset of
          *        overDiv: >0 pixels from top side; 0 is center; <0
          *        pixels from bottom side
-         * @param {object} overDivBox dojo.marginBox of div to be
+         * @param {object} overDivBox domGeom.getMarginBox of div to be
          *        positioned
-         * @param {object} underDivBox dojo.marginBox of div over which
+         * @param {object} underDivBox domGeom.getMarginBox of div over which
          *        overDiv is to be positioned
          * @return {object} Updated styleAttrs structure
          * @memberOf js.LGGraphic#
@@ -647,7 +651,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDependency", null, {
+    declare("js.LGDependency", null, {
         /**
          * Constructs an LGDependency.
          *
@@ -716,7 +720,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDefaults", null, {
+    declare("js.LGDefaults", null, {
         /**
          * Constructs an LGDefaults.
          *

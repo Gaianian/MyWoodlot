@@ -17,6 +17,7 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
@@ -46,6 +47,7 @@ define([
     "js/lgonlineBase",
     "js/lgonlineMap"
 ], function (
+    declare,
     domConstruct,
     dom,
     on,
@@ -76,7 +78,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDropdownBox", js.LGGraphic, {
+    declare("js.LGDropdownBox", js.LGGraphic, {
         /**
          * Constructs an LGDropdownBox.
          *
@@ -147,7 +149,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMapBasedMenuBox", [js.LGDropdownBox, js.LGMapDependency], {
+    declare("js.LGMapBasedMenuBox", [js.LGDropdownBox, js.LGMapDependency], {
         /**
          * Constructs an LGMapBasedMenuBox.
          *
@@ -179,7 +181,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGBasemapBox", js.LGMapBasedMenuBox, {
+    declare("js.LGBasemapBox", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGBasemapBox.
          *
@@ -279,7 +281,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDijitLegendBox", js.LGMapBasedMenuBox, {
+    declare("js.LGDijitLegendBox", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGDijitLegendBox.
          *
@@ -337,7 +339,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCallMethods", js.LGObject, {
+    declare("js.LGCallMethods", js.LGObject, {
         /**
          * Constructs an LGCallMethods and executes the list of tasks in
          * its definition.
@@ -375,7 +377,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGButton", js.LGGraphic, {
+    declare("js.LGButton", js.LGGraphic, {
         /**
          * Constructs an LGButton.
          *
@@ -574,7 +576,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGRadioButton", js.LGButton, {
+    declare("js.LGRadioButton", js.LGButton, {
         /**
          * Constructs an LGRadioButton.
          *
@@ -688,7 +690,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGRadioButtonController", js.LGObject, {
+    declare("js.LGRadioButtonController", js.LGObject, {
         /**
          * Constructs an LGRadioButtonController.
          *
@@ -780,7 +782,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCommand", [js.LGButton, js.LGDependency], {
+    declare("js.LGCommand", [js.LGButton, js.LGDependency], {
         /**
          * Constructs an LGCommand.
          *
@@ -878,7 +880,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCommandToggle", js.LGCommand, {
+    declare("js.LGCommandToggle", js.LGCommand, {
         /**
          * Constructs an LGCommandToggle.
          *
@@ -993,7 +995,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGLaunchUrl", js.LGObject, {
+    declare("js.LGLaunchUrl", js.LGObject, {
         /**
          * Constructs an LGLaunchUrl.
          *
@@ -1020,7 +1022,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGPrintMap", js.LGMapBasedMenuBox, {
+    declare("js.LGPrintMap", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGPrintMap.
          *
@@ -1185,7 +1187,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFetchPrintedMap", [js.LGObject, js.LGMapDependency], {
+    declare("js.LGFetchPrintedMap", [js.LGObject, js.LGMapDependency], {
         /**
          * Constructs an LGFetchPrintedMap.
          *
@@ -1243,7 +1245,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGLocate", js.LGObject, {
+    declare("js.LGLocate", js.LGObject, {
         /**
          * Constructs an LGLocate.
          *
@@ -1317,7 +1319,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearch", js.LGObject, {
+    declare("js.LGSearch", js.LGObject, {
         /**
          * LGSearch
          *
@@ -1424,7 +1426,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchAddress", [js.LGSearch, js.LGMapDependency], {
+    declare("js.LGSearchAddress", [js.LGSearch, js.LGMapDependency], {
         /**
          * Constructs an LGSearchAddress.
          *
@@ -1535,7 +1537,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchFeatureLayer", [js.LGSearch, js.LGMapDependency], {
+    declare("js.LGSearchFeatureLayer", [js.LGSearch, js.LGMapDependency], {
         /**
          * Constructs an LGSearchFeatureLayer.
          *
@@ -1814,7 +1816,7 @@ define([
             // Replace the search term into the search query for each field to be searched
             array.forEach(this.searchFields, function (searchField) {
                 searchParam = searchParam + attributeSeparator
-                    + dojo.string.substitute(attributePattern, [searchField, processedSearchText]);
+                    + string.substitute(attributePattern, [searchField, processedSearchText]);
                 attributeSeparator = attributeSeparatorReset;
             });
 
@@ -1941,7 +1943,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchMultiplexer", js.LGSearch, {
+    declare("js.LGSearchMultiplexer", js.LGSearch, {
         /**
          * Constructs an LGSearchMultiplexer.
          *
@@ -2103,7 +2105,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchFeatureLayerMultiplexer", [js.LGSearchMultiplexer, js.LGMapDependency], {
+    declare("js.LGSearchFeatureLayerMultiplexer", [js.LGSearchMultiplexer, js.LGMapDependency], {
         /**
          * Constructs an LGSearchFeatureLayerMultiplexer.
          *
@@ -2231,7 +2233,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchBoxByText", js.LGDropdownBox, {
+    declare("js.LGSearchBoxByText", js.LGDropdownBox, {
         /**
          * Constructs an LGSearchBoxByText.
          *
@@ -2353,7 +2355,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGShare", js.LGObject, {
+    declare("js.LGShare", js.LGObject, {
         /**
          * Constructs an LGShare.
          *
@@ -2459,7 +2461,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGShareAppExtents", [js.LGShare, js.LGMapDependency], {
+    declare("js.LGShareAppExtents", [js.LGShare, js.LGMapDependency], {
         /**
          * LGShareAppExtents
          *
@@ -2507,20 +2509,22 @@ define([
          * @memberOf js.LGShareAppExtents
          */
         removeMapExtentsArg: function (url) {
+            var urlParts, params, iStart, iEnd;
+
             // Separate base of URL from its parameters
-            var urlParts = url.split("?", 2);
+            urlParts = url.split("?", 2);
             if (urlParts.length === 1) {
                 return url;
             }
 
             // Clean up the parameters
-            var params = "&" + urlParts[1] + "&";
+            params = "&" + urlParts[1] + "&";
             for (;;) {
-                var iStart = params.indexOf("&ex=");
+                iStart = params.indexOf("&ex=");
                 if (iStart < 0) {
                     break;
                 }
-                var iEnd = params.indexOf("&", iStart + 1);
+                iEnd = params.indexOf("&", iStart + 1);
                 params = params.substring(0, iStart) + params.substring(iEnd);
             }
 
@@ -2529,7 +2533,7 @@ define([
             if (params.length > 2) {
                 url += "?" + params.substring(1, params.length - 1);
             }
-            return url
+            return url;
         },
 
         /**
@@ -2545,7 +2549,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFilterLayers1", js.LGMapBasedMenuBox, {
+    declare("js.LGFilterLayers1", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGFilterLayers1.
          *
@@ -2761,7 +2765,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFilterLayers1WithDefaults", [js.LGFilterLayers1, js.LGDefaults], {
+    declare("js.LGFilterLayers1WithDefaults", [js.LGFilterLayers1, js.LGDefaults], {
         /**
          * Constructs an LGFilterLayers1WithDefaults.
          *

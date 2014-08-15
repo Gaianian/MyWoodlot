@@ -17,6 +17,8 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/declare",
+    "dojo/dom",
     "dojo/dom-construct",
     "dojo/_base/array",
     "dojo/_base/lang",
@@ -30,6 +32,8 @@ define([
     "js/lgonlineMap",
     "js/lgonlineCommand"
 ], function (
+    declare,
+    dom,
     domConstruct,
     array,
     lang,
@@ -43,7 +47,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGEditTemplatePicker", js.LGMapBasedMenuBox, {
+    declare("js.LGEditTemplatePicker", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGEditTemplatePicker.
          *
@@ -64,7 +68,7 @@ define([
             // and deactivate the foreground colors in order to see the theme and we have to
             // manually set the theme for the selected item in the template picker because we
             // don't have a handle to the currently-selected item.)
-            colorizer = dojo.byId(this.colorizerId).getLGObject();
+            colorizer = dom.byId(this.colorizerId).getLGObject();
             styleString =
                 ".templatePicker{border:1px solid transparent!important;}" +
                 ".templatePicker .dojoxGrid{background-color:transparent;}" +
@@ -310,7 +314,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGEditTemplatePickerWithDefaults", [js.LGEditTemplatePicker, js.LGDefaults], {
+    declare("js.LGEditTemplatePickerWithDefaults", [js.LGEditTemplatePicker, js.LGDefaults], {
         /**
          * Constructs an LGEditTemplatePickerWithDefaults.
          *
@@ -343,7 +347,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFeatureByClick", [js.LGObject, js.LGMapDependency], {
+    declare("js.LGFeatureByClick", [js.LGObject, js.LGMapDependency], {
         /**
          * Constructs an LGFeatureByClick.
          *
@@ -389,7 +393,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGAddFeatureByClick", js.LGFeatureByClick, {
+    declare("js.LGAddFeatureByClick", js.LGFeatureByClick, {
         /**
          * Constructs an LGAddFeatureByClick.
          *
