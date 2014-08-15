@@ -17,6 +17,7 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
@@ -31,6 +32,7 @@ define([
     "esri/tasks/ProjectParameters",
     "js/lgonlineBase"
 ], function (
+    declare,
     domConstruct,
     dom,
     on,
@@ -47,7 +49,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMapDependency", js.LGDependency, {
+    declare("js.LGMapDependency", js.LGDependency, {
         /**
          * Constructs an LGMapDependency.
          *
@@ -75,7 +77,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMap", js.LGGraphic, {
+    declare("js.LGMap", js.LGGraphic, {
         /**
          * Constructs an LGMap.
          * <br><b>N.B.: this implementation does not support more
@@ -251,20 +253,10 @@ define([
                 map.spatialReference = new esri.SpatialReference(102100);
             }
 
-            //this.listeners.push(
-            //    dojo.connect(pThis.appConfig.map, "onUnload", function () {  // release event listeners upon unload
-            //        // http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/inside_events.html
-            //        dojo.forEach(var fred in this.listeners) {
-            //            dojo.disconnect(fred);
-            //        }
-            //    });
-            //);
-            //pThis.listeners.push(
             on(window, "resize", lang.hitch(this, function () {
                 map.resize();
                 map.reposition();
             }));
-            //);
 
             // Set up a graphics layer for receiving position updates and feature highlights
             this.tempGraphicsLayer = this.createGraphicsLayer("tempGraphicsLayer");

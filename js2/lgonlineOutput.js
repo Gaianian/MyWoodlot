@@ -17,6 +17,7 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom-class",
     "dojo/_base/array",
@@ -24,6 +25,7 @@ define([
     "dojo/topic",
     "js/lgonlineBase"
 ], function (
+    declare,
     domConstruct,
     domClass,
     array,
@@ -33,7 +35,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGNotes", js.LGObject, {
+    declare("js.LGNotes", js.LGObject, {
         /**
          * Constructs an LGNotes.
          *
@@ -55,7 +57,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGBusy", js.LGGraphic, {
+    declare("js.LGBusy", js.LGGraphic, {
         /**
          * Constructs an LGBusy.
          *
@@ -75,7 +77,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGLogBox", js.LGDropdownBox, {
+    declare("js.LGLogBox", js.LGDropdownBox, {
         /**
          * Constructs an LGLogBox.
          *
@@ -114,7 +116,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMessageBox", js.LGDropdownBox, {
+    declare("js.LGMessageBox", js.LGDropdownBox, {
         /**
          * Constructs an LGMessageBox.
          *
@@ -152,7 +154,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSelfHidingMessageBox", js.LGMessageBox, {
+    declare("js.LGSelfHidingMessageBox", js.LGMessageBox, {
         /**
          * Constructs an LGSelfHidingMessageBox.
          *
@@ -206,7 +208,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGPublishEcho", js.LGDropdownBox, {
+    declare("js.LGPublishEcho", js.LGDropdownBox, {
         /**
          * Constructs an LGPublishEcho.
          *
@@ -232,7 +234,7 @@ define([
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMessageWatch", js.LGObject, {
+    declare("js.LGMessageWatch", js.LGObject, {
         /**
          * Constructs an LGMessageWatch.
          *
