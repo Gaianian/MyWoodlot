@@ -360,13 +360,18 @@ define([
          */
         setZoom: function (zoom) {
             var minZoom = this.appConfig.map.getMinZoom(),
-                maxZoom = this.appConfig.map.getMaxZoom();
+                maxZoom = this.appConfig.map.getMaxZoom(),
+                zoomFinished;
 
             // Constrain the zoom to the map's zoom levels if the map has them
             if (minZoom >= 0 && maxZoom >= 0) {
                 zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+                zoomFinished = this.appConfig.map.setZoom(zoom);
+            } else {
+                zoomFinished = new Deferred();
+                zoomFinished.resolve();
             }
-            return this.appConfig.map.setZoom(zoom);
+            return zoomFinished;
         },
 
         /**
