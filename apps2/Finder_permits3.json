@@ -25,19 +25,19 @@
         "titleBar.iconUrl": "images/onlineapp.png",
         "colorizer.theme": "SeaBlues",
         "searchBox.hint": "number",
-        "featureSearcher.searchLayerName": "Numbers",
-        "featureSearcher.searchFields": "Italian,French,Description",
+        "featureSearcher.searchLayerName": "",
+        "featureSearcher.searchFields": "",
         "featureSearcher.displayFields": "",
         "featureSearcher.searchLayersString": "",
+        "featureSearcher.displayLayersString": "",
         "featureSearcher.searchLayers": [{
             "id": "Permits",
             "fields": ["PERMITID", "PERMITTYPE", "APPLICANT"],
             "type": "FeatureLayer"
         }],
-        "featureSearcher.displayLayersString": "",
         "featureSearcher.displayLayers": [{
             "id": "Permits",
-            "fields": ["PERMITID", "PERMITTYPE", "APPLICANT"],
+            "fields": ["PERMITID"],
             "type": "FeatureLayer"
         }],
         "highlighter.showFeaturePopup": true,
