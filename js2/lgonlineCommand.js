@@ -1427,6 +1427,16 @@ define([
             }
 
             return repPoint;
+        },
+
+        /**
+         * Returns the character to be used by this searcher for
+         * separating fields.
+         * @return {string} The character
+         * @memberOf js.LGSearch#
+         */
+        fieldSeparatorChar: function () {
+            return "%";
         }
     });
 
@@ -1561,13 +1571,12 @@ define([
             this.caseInsensitiveSearch = this.toBoolean(this.caseInsensitiveSearch, true);
             this.ready = new Deferred();
 
-            // Normalize display field--it could be a string with a field, an empty string, or undefined
+            // Normalize display field--it could be a string with field (s), an empty string, an array,
+            // or undefined
             if (this.displayField) {
-                // In case a list of display fields is provided because of a mixup with LGFeatureLayer
-                // vs. LGSearchFeatureLayerMultiplexer, just take the first field
-                this.displayField = this.displayField.split(",")[0].trim();
-            } else {
-                this.displayField = "";
+                if (!this.isArray(this.displayField)) {
+                    this.displayField = this.displayField.split(",");
+                }
             }
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
@@ -1581,103 +1590,117 @@ define([
          */
         onDependencyReady: function () {
             // Now that the map (our dependency) is ready, get the URL of the search layer from it
-            var searchLayer, reason, splitFields, availableFields = ",", opLayers,
-                pThis = this, actualFieldList = [], generalOutFields;
+            var searchLayer, reason, fields, splitFields, availableFields = ",", opLayers,
+                pThis = this, actualFieldList = [], generalOutFields, missingFields = [];
 
             // Check that the search layer and fields exist
             if (this.searchLayerName) {
                 try {
                     searchLayer = this.mapObj.getLayer(this.searchLayerName);
-                    if (searchLayer && searchLayer.url &&
-                            searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
-                        this.searchURL = searchLayer.url;
+                    if (searchLayer && searchLayer.url) {
+                        fields = searchLayer.fields ||
+                            (searchLayer.resourceInfo && searchLayer.resourceInfo.fields);
+                        if (fields) {
+                            this.searchURL = searchLayer.url;
 
-                        // Check for existence of fields; start with a list of fields in the search layer
-                        array.forEach(searchLayer.resourceInfo.fields, function (layerField) {
-                            availableFields += layerField.name + ",";
-                        });
-
-                        // Only keep search fields that the layer has
-                        if (this.searchFields && 0 < this.searchFields.length) {
-                            splitFields = this.searchFields.split(",");
-                            this.searchFields = [];
-                            array.forEach(splitFields, function (searchField) {
-                                pThis.searchFields.push(searchField.trim());
+                            // Check for existence of fields; start with a list of fields in the search layer
+                            array.forEach(fields, function (layerField) {
+                                availableFields += layerField.name + ",";
                             });
 
-                            array.forEach(this.searchFields, function (searchField) {
-                                if (availableFields.indexOf("," + searchField + ",") >= 0) {
-                                    actualFieldList.push(searchField);
+                            // Only keep search fields that the layer has
+                            if (this.searchFields && 0 < this.searchFields.length) {
+                                // Convert the search fields to an array
+                                if (!this.isArray(this.searchFields)) {
+                                    splitFields = this.searchFields.split(",");
+                                    this.searchFields = [];
+                                    array.forEach(splitFields, function (searchField) {
+                                        pThis.searchFields.push(searchField.trim());
+                                    });
                                 }
+
+                                array.forEach(this.searchFields, function (searchField) {
+                                    if (availableFields.indexOf("," + searchField + ",") >= 0) {
+                                        actualFieldList.push(searchField);
+                                    }
+                                });
+                            } else {
+                                this.searchFields = [];
+                            }
+
+                            // Can we search for anything in this layer?
+                            if (actualFieldList.length === 0) {
+                                this.showSearchLayerFieldError(this.searchFields, this.searchLayerName, searchLayer);
+
+                                this.ready.reject(this);
+                                this.inherited(arguments);
+                                return;
+                            }
+
+                            // Does the layer contain the requested display field(s)?
+                            if (this.displayField) {
+                                array.forEach(this.displayField, function (displayFieldName) {
+                                    if (availableFields.indexOf("," + displayFieldName + ",") < 0) {
+                                        // Requested display field not found
+                                        missingFields.push(displayFieldName);
+                                    }
+                                });
+                                if (missingFields.length > 0) {
+                                    this.showSearchLayerFieldError(missingFields, this.searchLayerName, searchLayer);
+                                }
+                            }
+
+                            // If there are searchable fields, replace the requested search fields list with
+                            // the available search fields list
+                            this.searchFields = actualFieldList;
+
+                            // Set up our query task now that we have the URL to the layer
+                            this.objectIdField = searchLayer.objectIdField || "ObjectID";
+                            if (searchLayer.resourceInfo && searchLayer.resourceInfo.objectIdField) {
+                                this.objectIdField = searchLayer.resourceInfo.objectIdField;
+                            } else if (searchLayer.layerObject && searchLayer.layerObject.objectIdField) {
+                                this.objectIdField = searchLayer.layerObject.objectIdField;
+                            }
+                            this.publishPointsOnly = (typeof this.publishPointsOnly === "boolean") ?
+                                    this.publishPointsOnly : true;
+
+                            this.searcher = new QueryTask(this.searchURL);
+
+                            // Set up the general layer query task: pattern match
+                            this.generalSearchParams = new Query();
+                            this.generalSearchParams.returnGeometry = false;
+                            this.generalSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
+
+                            generalOutFields = [this.objectIdField];
+                            if (this.displayField) {
+                                array.forEach(this.displayField, function (displayFieldName) {
+                                    generalOutFields = generalOutFields.concat(displayFieldName);
+                                });
+                            }
+                            this.generalSearchParams.outFields = generalOutFields.concat(this.searchFields);
+
+                            // Set up the specific layer query task: object id
+                            this.objectSearchParams = new Query();
+                            this.objectSearchParams.returnGeometry = true;
+                            this.objectSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
+                            this.objectSearchParams.outFields = ["*"];
+
+                            // Get the popup for this layer & save it with the layer
+                            opLayers = this.appConfig.itemInfo.itemData.operationalLayers;
+                            array.some(opLayers, function (layer) {
+                                if (layer.title === pThis.searchLayerName || layer.id === pThis.searchLayerName) {
+                                    pThis.layer = layer;
+                                    pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
+                                    return true;
+                                }
+                                return false;
                             });
-                        } else {
-                            this.searchFields = [];
-                        }
 
-                        // Can we search for anything in this layer?
-                        if (actualFieldList.length === 0) {
-                            this.showSearchLayerFieldError(this.searchFields, this.searchLayerName, searchLayer);
-
-                            this.ready.reject(this);
+                            this.log("Search layer " + this.searchLayerName + " set up for queries");
+                            this.ready.resolve(this);
                             this.inherited(arguments);
                             return;
                         }
-
-                        // Does the layer contain the requested display field?
-                        if (this.displayField !== "" && availableFields.indexOf("," + this.displayField + ",") < 0) {
-                            // Requested display field not found
-                            this.showSearchLayerFieldError([this.displayField], this.searchLayerName, searchLayer);
-
-                            this.displayField = "";
-                        }
-
-                        // If there are searchable fields, replace the requested search fields list with
-                        // the available search fields list
-                        this.searchFields = actualFieldList;
-
-                        // Set up our query task now that we have the URL to the layer
-                        this.objectIdField = "ObjectID";
-                        if (searchLayer.resourceInfo && searchLayer.resourceInfo.objectIdField) {
-                            this.objectIdField = searchLayer.resourceInfo.objectIdField;
-                        } else if (searchLayer.layerObject && searchLayer.layerObject.objectIdField) {
-                            this.objectIdField = searchLayer.layerObject.objectIdField;
-                        }
-                        this.publishPointsOnly = (typeof this.publishPointsOnly === "boolean") ? this.publishPointsOnly : true;
-
-                        this.searcher = new QueryTask(this.searchURL);
-
-                        // Set up the general layer query task: pattern match
-                        this.generalSearchParams = new Query();
-                        this.generalSearchParams.returnGeometry = false;
-                        this.generalSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
-
-                        generalOutFields = [this.objectIdField];
-                        if (this.displayField !== "") {
-                            generalOutFields = generalOutFields.concat(this.displayField);
-                        }
-                        this.generalSearchParams.outFields = generalOutFields.concat(this.searchFields);
-
-                        // Set up the specific layer query task: object id
-                        this.objectSearchParams = new Query();
-                        this.objectSearchParams.returnGeometry = true;
-                        this.objectSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
-                        this.objectSearchParams.outFields = ["*"];
-
-                        // Get the popup for this layer & save it with the layer
-                        opLayers = this.appConfig.itemInfo.itemData.operationalLayers;
-                        array.some(opLayers, function (layer) {
-                            if (layer.title === pThis.searchLayerName) {
-                                pThis.layer = layer;
-                                pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
-                                return true;
-                            }
-                            return false;
-                        });
-
-                        this.log("Search layer " + this.searchLayerName + " set up for queries");
-                        this.ready.resolve(this);
-                        this.inherited(arguments);
-                        return;
                     }
                 } catch (error) {
                     reason = error.toString();
@@ -1701,7 +1724,8 @@ define([
             var isSearchable = false, searchLayer;
 
             searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && searchLayer.url && searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            if (searchLayer && searchLayer.url && (searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields))) {
                 isSearchable = true;
             }
 
@@ -1750,13 +1774,15 @@ define([
          * @param {array} candidateFields List of fields requested for search or for display
          * @param {string} searchLayerName Name to report for search layer
          * @param {object} searchLayer Details of search layer as returned from map;
-         *        function uses searchLayer.resourceInfo.fields
+         *        function uses searchLayer.fields or searchLayer.resourceInfo.fields
          * @memberOf js.LGSearchFeatureLayer#
          */
         showSearchLayerFieldError: function (candidateFields, searchLayerName, searchLayer) {
-            var reason = "", message;
+            var fields, reason = "", message;
 
-            if (searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            fields = searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields);
+            if (fields) {
                 // List the requested fields
                 array.forEach(candidateFields, function (field) {
                     if (reason.length > 0) {
@@ -1776,7 +1802,7 @@ define([
                 // Add the search layer name and a list of available fields in that layer
                 message += "<br><hr>\"" + searchLayerName + "\"<br>";
                 message += this.checkForSubstitution("@prompts.layerFields") + "<br><ul>";
-                array.forEach(searchLayer.resourceInfo.fields, function (layerField) {
+                array.forEach(fields, function (layerField) {
                     message += "<li>\"" + layerField.name + "\"</li>";
                 });
                 message += "</ul>";
@@ -1853,8 +1879,15 @@ define([
 
                     // Use the display field for representing the results if possible
                     representativeLabel = "";
-                    if (item.attributes[pThis.displayField]) {
-                        representativeLabel = item.attributes[pThis.displayField].toString();
+                    if (pThis.displayField) {
+                        array.forEach(pThis.displayField, function (displayFieldName) {
+                            if (item.attributes[displayFieldName]) {
+                                if (representativeLabel.length > 0) {
+                                    representativeLabel += pThis.fieldSeparatorChar();
+                                }
+                                representativeLabel += item.attributes[displayFieldName].toString();
+                            }
+                        });
                     } else {
                         // Test each non-null search field result and pick the first one
                         // that contains the search string as our label
@@ -1874,7 +1907,8 @@ define([
                         representativeLabel = "result";
                     }
 
-                    // Create the entry for this result
+                    // Create the entry for this result; use pThis.fieldSeparatorChar
+                    // to separate fields
                     resultsList.push({
                         "label": representativeLabel,
                         "data": item.attributes[pThis.objectIdField]
@@ -2121,7 +2155,8 @@ define([
          * @extends js.LGSearchMultiplexer, js.LGMapDependency
          * @classdesc
          * Provides a searcher that multiplexes the work of LGSearchFeatureLayer searchers,
-         * selecting them by feature layer name
+         * selecting them from a comma-separated list of feature layer names, search field
+         * names, and display field names
          */
         constructor: function () {
             this.setUpWaitForDependency("js.LGSearchFeatureLayerMultiplexer");
@@ -2138,16 +2173,59 @@ define([
                 featureDisplayFields = [], i, searcherName, searcher;
             this.searchers = [];
 
-            // Get the list of layers & the list of display fields
-            if (this.searchLayerName) {
-                featureLayerNames = this.searchLayerName.split(",");
+            // Get the list of layers and fields to search.  If this.searchLayers
+            // is defined, we have a combination structure with both, e.g.,
+            //     [{
+            //         "id": "Watershed173811_8687.0",
+            //         "fields": ["gnis_name", "reachcode"],
+            //         "type": "FeatureLayer"
+            //     }, {
+            //         "id": "Watershed173811_8687.1",
+            //         "fields": ["gnis_name"],
+            //         "type": "FeatureLayer"
+            //     }]
+            // Alternatively, this.searchLayersString is string of JSON that provides this
+            // structure. Yet another alternative uses the fields from the earlier version--
+            // this.searchLayerName and this.searchFields--that also provide  backwards
+            // compatibility. In this section, we normalize the parameters that we have to
+            // the this.searchLayers structure.
+            if (!this.searchLayers) {
+                this.searchLayers = [];
+                if (this.searchLayersString) {
+                    this.searchLayers = JSON.parse(this.searchLayersString);
+                } else if (this.searchLayerName && this.searchLayerName.length > 0) {
+                    featureLayerNames = this.searchLayerName.split(",");
+                    for (i = 0; i < featureLayerNames.length; i = i + 1) {
+                        this.searchLayers.push({
+                            "id": featureLayerNames[i].trim(),
+                            "fields": this.searchFields.split(","),
+                            "type": "FeatureLayer"
+                        });
+                    }
+                }
             }
-            if (this.displayFields) {
-                featureDisplayFields = this.displayFields.split(",");
+
+            // Get the desired fields to be used for the display.  If this.displayLayers
+            // is defined, we have a combination structure with both; it'll look like
+            // this.searchLayers above.
+            if (!this.displayLayers) {
+                this.displayLayers = [];
+                if (this.displayLayersString) {
+                    this.displayLayers = JSON.parse(this.displayLayersString);
+                } else if (this.displayFields && this.displayFields.length > 0) {
+                    featureDisplayFields = this.displayFields.split(",");
+                    for (i = 0; i < featureLayerNames.length; i = i + 1) {
+                        this.displayLayers.push({
+                            "id": featureLayerNames[i].trim(),
+                            "fields": (featureDisplayFields[i] || "").trim(),
+                            "type": "FeatureLayer"
+                        });
+                    }
+                }
             }
 
             // Construct the searchers and build a list of their ready state deferrals
-            for (i = 0; i < featureLayerNames.length; i = i + 1) {
+            for (i = 0; i < this.searchLayers.length; i = i + 1) {
                 searcherName = this.rootId + "_" + this.searchers.length;
                 searcher = new js.LGSearchFeatureLayer({
                     appConfig: this.appConfig,
@@ -2158,9 +2236,10 @@ define([
                     publishPointsOnly: this.publishPointsOnly,
                     searchPattern: this.searchPattern,
                     caseInsensitiveSearch: this.caseInsensitiveSearch,
-                    searchLayerName: featureLayerNames[i].trim(),
-                    searchFields: this.searchFields,
-                    displayField: featureDisplayFields[i]
+                    searchLayerName: this.searchLayers[i].id,
+                    searchFields: this.searchLayers[i].fields,  //???
+                    displayField: this.displayLayers[i].fields  //??? sync between two arrays
+                    //displayField: featureDisplayFields[i]     //???
                 });
                 this.searchers.push(searcher);
                 deferralWaitList.push(searcher.ready);
@@ -2192,7 +2271,8 @@ define([
             var isSearchable = false, searchLayer;
 
             searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && searchLayer.url && searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            if (searchLayer && searchLayer.url && (searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields))) {
                 isSearchable = true;
             }
 
@@ -2268,21 +2348,39 @@ define([
             }).placeAt(this.rootId);
             domStyle.set(this.searchEntryTextBox.domNode, "width", "99%");
 
-            // Prepare the results list
-            this.prepareResultsBox();
-
             // Prepare the searcher
             searcher = this.lgById(this.searcher);
             lastSearchString = "";
             lastSearchTime = 0;
             stagedSearch = null;
 
+            // There are alternate display options for the results list:
+            //   1. list of results, with multiple lines and a horizontal rule used if
+            //      each result displays more than one field (default or "multiline")
+            //   2. single-line list of results, with " / " separating the fields in each
+            //      result if that result displays more than one field ("single-line")
+            //   3. data grid list of results, with each result's display field occupying
+            //      its own column in the grid ("data grid")
+            // Assign the appropriate methods to support the desired display type.
+            var numberOfColumns = 3;  //???
+            switch (this.displayResultsAs) {
+            case "single-line":
+                this.displayResults = new js.LGSearchResultsDisplaySingleline(this);
+                break;
+            case "data grid":
+                this.displayResults = new js.LGSearchResultsDisplayDataGrid(this, numberOfColumns);
+                break;
+            default:
+                this.displayResults = new js.LGSearchResultsDisplayMultiline(this);
+                break;
+            }
+
             // Run a search when the entry text changes
             on(this.searchEntryTextBox, "change", function () {
                 var searchText = pThis.searchEntryTextBox.get("value");
                 if (lastSearchString !== searchText) {
                     lastSearchString = searchText;
-                    pThis.clearResultsBox();
+                    pThis.displayResults.clearResultsBox();
 
                     // Clear any staged search
                     clearTimeout(stagedSearch);
@@ -2294,7 +2392,7 @@ define([
                             var thisSearchTime, now;
 
                             // Launch a search after recording when the search began
-                            pThis.showSearchingBusy();
+                            pThis.displayResults.showSearchingBusy();
                             thisSearchTime = lastSearchTime = (new Date()).getTime();
                             searcher.search(searchText, function (results) {
                                 var resultsList;
@@ -2305,7 +2403,7 @@ define([
                                 }
 
                                 // Show results
-                                pThis.hideSearchingBusy();
+                                pThis.displayResults.hideSearchingBusy();
                                 resultsList = searcher.toList(results, searchText);
 
                                 now = (new Date()).getTime();
@@ -2313,87 +2411,18 @@ define([
                                     + (now - thisSearchTime) / 1000 + " secs");
 
                                 if (resultsList.length > 0) {
-                                    pThis.showResults(searcher, resultsList);
+                                    pThis.displayResults.showResults(searcher, resultsList);
                                 }
                             }, function (error) {
                                 // Query failure
                                 pThis.log("LGSearchBoxByText_1: " + error.message);
 
                                 lastSearchString = "";  // so that we can quickly repeat this search
-                                pThis.hideSearchingBusy();
+                                pThis.displayResults.hideSearchingBusy();
                             });
                         }, 1000);
                     }
                 }
-            });
-        },
-
-        /**
-         * Prepares the area where the search results will be shown.
-         * @memberOf js.LGSearchBoxByText#
-         */
-        prepareResultsBox: function () {
-            var resultsListBox, table;
-
-            resultsListBox = domConstruct.create("div",
-                {className: this.resultsListBoxClass}, this.rootId);
-            table = domConstruct.create("table",
-                {className: this.resultsListTableClass}, resultsListBox);
-            this.tableBody = domConstruct.create("tbody",
-                {className: this.resultsListBodyClass}, table);
-            touchScroll(resultsListBox);
-        },
-
-        /**
-         * Clears the area where the search results are shown.
-         * @memberOf js.LGSearchBoxByText#
-         */
-        clearResultsBox: function () {
-            domConstruct.empty(this.tableBody);
-        },
-
-        /**
-         * Shows that a search is active.
-         * @memberOf js.LGSearchBoxByText#
-         */
-        showSearchingBusy: function () {
-            var searchingPlaceholder = domConstruct.create("tr", null, this.tableBody);
-            domConstruct.create("td",
-                {className: this.resultsListSearchingClass}, searchingPlaceholder);
-        },
-
-        /**
-         * Hides the active-search indication.
-         * @memberOf js.LGSearchBoxByText#
-         */
-        hideSearchingBusy: function () {
-            domConstruct.empty(this.tableBody);
-        },
-
-        /**
-         * Shows the results of a search.
-         * @param {object} searcher The searcher configured to work with this UI item
-         * @param {array} resultsList The list of search results after the searcher has
-         * processed them through its toList() function; array contains structures where
-         * label is tagged with "label" and data is tagged with "data"
-         * @memberOf js.LGSearchBoxByText#
-         */
-        showResults: function (searcher, resultsList) {
-            var pThis = this;
-
-            array.forEach(resultsList, function (item) {
-                var tableRow, tableCell;
-
-                // Create a row showing a result's label and with its data attached
-                // to a row-click handler
-                tableRow = domConstruct.create("tr",
-                    null, pThis.tableBody);
-                tableCell = domConstruct.create("td",
-                    {className: pThis.resultsListEntryClass, innerHTML: item.label}, tableRow);
-                pThis.applyTheme(true, tableCell);
-                on(tableCell, "click", function () {
-                    searcher.publish(pThis.publish, item.data);
-                });
             });
         },
 
@@ -2412,29 +2441,255 @@ define([
 
     //========================================================================================================================//
 
-    declare("js.LGSearchBoxByTextGrid", js.LGSearchBoxByText, {
+    declare("js.LGSearchResultsDisplay", null, {
         /**
-         * Constructs an LGSearchBoxByTextGrid.
+         * Constructs an LGSearchResultsDisplay.
          *
          * @constructor
          * @class
-         * @name js.LGSearchBoxByTextGrid
-         * @extends js.LGSearchBoxByText
+         * @name js.LGSearchResultsDisplay
          * @classdesc
-         * Provides a UI display of a prompted text box followed by a
-         * grid of results. Works with subclass of LGSearch, which provides
-         * the searching and results formatting for this display.
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText.
+         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
          */
-        constructor: function () {
+        constructor: function (searchUI) {
+            this.searchUI = searchUI;
         },
 
         /**
-         * Prepares the area where the search results will be shown.
-         * @memberOf js.LGSearchBoxByTextGrid#
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        clearResultsBox: function () {
+            return;
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        showSearchingBusy: function () {
+            return;
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        hideSearchingBusy: function () {
+            return;
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        showResults: function (searcher, resultsList) {
+            return;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplayTable", js.LGSearchResultsDisplay, {
+        /**
+         * Constructs an LGSearchResultsDisplayTable.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplayTable
+         * @extends js.LGSearchResultsDisplay
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table.
+         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
+         */
+        constructor: function (searchUI) {
+            var resultsListBox, table;
+
+            resultsListBox = domConstruct.create("div",
+                {className: this.searchUI.resultsListBoxClass}, this.searchUI.rootId);
+            table = domConstruct.create("table",
+                {className: this.searchUI.resultsListTableClass}, resultsListBox);
+            this.tableBody = domConstruct.create("tbody",
+                {className: this.searchUI.resultsListBodyClass}, table);
+            touchScroll(resultsListBox);
+        },
+
+        /**
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchResultsDisplayTable#
          * @override
          */
-        prepareResultsBox: function () {
-            var CustomGrid, resultsListBox, resultsListBoxSize, gridDiv;
+        clearResultsBox: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        showSearchingBusy: function () {
+            var searchingPlaceholder = domConstruct.create("tr", null, this.tableBody);
+            domConstruct.create("td",
+                {className: this.searchUI.resultsListSearchingClass}, searchingPlaceholder);
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        hideSearchingBusy: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        showResults: function (searcher, resultsList) {
+            var pThis = this;
+
+            array.forEach(resultsList, function (item) {
+                var tableRow, tableCell;
+
+                // Create a row showing a result's label and with its data attached
+                // to a row-click handler
+                tableRow = domConstruct.create("tr",
+                    null, pThis.tableBody);
+                tableCell = domConstruct.create("td",
+                    {className: pThis.searchUI.resultsListEntryClass,
+                        innerHTML: pThis.formatItemLabel(item.label,
+                            searcher.fieldSeparatorChar())}, tableRow);
+                pThis.searchUI.applyTheme(true, tableCell);
+                on(tableCell, "click", function () {
+                    searcher.publish(pThis.searchUI.publish, item.data);
+                });
+            });
+        },
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayTable#
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            return;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplayMultiline", js.LGSearchResultsDisplayTable, {
+        /**
+         * Constructs an LGSearchResultsDisplayMultiline.
+         *
+         * @class
+         * @name js.LGSearchResultsDisplayMultiline
+         * @extends js.LGSearchResultsDisplayTable
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table, and for
+         * each result, displays one field per display line; if there's more than one
+         * field in a result, the list of fields is terminated by an HTML horizontal
+         * rule.
+         */
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayMultiline#
+         * @override
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            var i, formatted = "", parts = label.split(fieldSeparatorChar);
+            for (i = 0; i < parts.length; ++i) {
+                if (i > 0) {
+                    formatted += "<br>";
+                }
+                formatted += parts[i];
+            }
+            if (parts.length > 1)
+            {
+                formatted += "<hr>";
+            }
+            return formatted;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplaySingleline", js.LGSearchResultsDisplayTable, {
+        /**
+         * Constructs an LGSearchResultsDisplaySingleline.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplaySingleline
+         * @extends js.LGSearchResultsDisplayTable
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table, and for
+         * each result, if there's more than one field, the display separates the
+         * fields by a forward slash. The display wraps within the table row if its
+         * length exceeds the available space.
+         */
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayMultiline#
+         * @override
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            var i, formatted = "", parts = label.split(fieldSeparatorChar);
+            for (i = 0; i < parts.length; ++i) {
+                if (i > 0) {
+                    formatted += " / ";
+                }
+                formatted += parts[i];
+            }
+            return formatted;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplayDataGrid", js.LGSearchResultsDisplay, {
+        /**
+         * Constructs an LGSearchResultsDisplayDataGrid.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplayDataGrid
+         * @extends js.LGSearchResultsDisplay
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on a dgrid.
+         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
+         */
+        constructor: function (searchUI, numberOfColumns) {
+            var i, columnHeadings = {}, CustomGrid, resultsListBox, resultsListBoxSize, gridDiv;
+
+            this.numberOfColumns = numberOfColumns;
 
             // Create a new constructor by mixing in the desired dgrid components
             CustomGrid = declare([ Grid, Selection ]);
@@ -2442,23 +2697,39 @@ define([
             // Now, create an instance of our custom grid which
             // have the features we added!
             resultsListBox = domConstruct.create("div",
-                {className: this.resultsListBoxClass, style: {overflow:"none"}}, this.rootId);
+                {className: this.searchUI.resultsListBoxClass, style: {overflow: "none"}},
+                this.searchUI.rootId);
             resultsListBoxSize = domGeom.getMarginBox(resultsListBox);
 
+            // Allocate columns for the specified number of results display columns
+            for (i = 1; i <= numberOfColumns; ++i) {
+                columnHeadings["col" + i] = "";
+            }
+
             gridDiv = domConstruct.create("div",
-                {style: {width:"198px", height:"172px"}}, resultsListBox);
+                {style: {height: "98%"}}, resultsListBox);
             this.grid = new CustomGrid({
-                columns: {
-                    col1: "",
-                    col2: ""
-                },
+                columns: columnHeadings,
                 selectionMode: "single" // for Selection; only select a single row at a time
             }, gridDiv);
+
+            // Enable grid row selection to publish the search result event
+            this.rowClick = this.grid.on(".dgrid-row:click", function (event) {
+                var row = pThis.grid.row(event);
+                searcher.publish(pThis.publish, row.data.data);
+            });
+
+            this.searchBusy = domConstruct.create("div",
+                {
+                    className: this.searchUI.resultsListSearchingClass,
+                    style: "position:absolute;top:0px;display:none"
+                },
+                resultsListBox);
         },
 
         /**
          * Clears the area where the search results are shown.
-         * @memberOf js.LGSearchBoxByTextGrid#
+         * @memberOf js.LGSearchResultsDisplayDataGrid#
          * @override
          */
         clearResultsBox: function () {
@@ -2475,20 +2746,20 @@ define([
 
         /**
          * Shows that a search is active.
-         * @memberOf js.LGSearchBoxByTextGrid#
+         * @memberOf js.LGSearchResultsDisplayDataGrid#
          * @override
          */
         showSearchingBusy: function () {
-            console.log("searching...");
+            domStyle.set(this.searchBusy, "display", "inline-block");
         },
 
         /**
          * Hides the active-search indication.
-         * @memberOf js.LGSearchBoxByTextGrid#
+         * @memberOf js.LGSearchResultsDisplayDataGrid#
          * @override
          */
         hideSearchingBusy: function () {
-            console.log("search done");
+            domStyle.set(this.searchBusy, "display", "none");
         },
 
         /**
@@ -2497,25 +2768,29 @@ define([
          * @param {array} resultsList The list of search results after the searcher has
          * processed them through its toList() function; array contains structures where
          * label is tagged with "label" and data is tagged with "data"
-         * @memberOf js.LGSearchBoxByTextGrid#
+         * @memberOf js.LGSearchResultsDisplayDataGrid#
          * @override
          */
         showResults: function (searcher, resultsList) {
             var pThis = this, rows = [], i;
 
             // Enable grid row selection to publish the search result event
-            this.rowClick = this.grid.on(".dgrid-row:click", function(event) {
+            this.rowClick = this.grid.on(".dgrid-row:click", function (event) {
                 var row = pThis.grid.row(event);
-                searcher.publish(pThis.publish, row.data.data);
+                searcher.publish(pThis.searchUI.publish, row.data.data);
             });
 
             // Format the resultsList for the grid
-            var i = 1;
+            i = 1;
             array.forEach(resultsList, function (item) {
-                var row = {};
-                row.col1 = i.toString(); ++i;
-                row.col2 = item.label;
+                var parts, columnHeadings, row = {};
                 row.data = item.data;
+
+                parts = item.label.split(searcher.fieldSeparatorChar());
+                for (i = 1; i <= pThis.numberOfColumns; ++i) {
+                    row["col" + i] = parts[i - 1] || "";
+                }
+
                 rows.push(row);
             });
 
