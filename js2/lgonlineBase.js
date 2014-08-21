@@ -334,6 +334,15 @@ define([
             return defaultValue;
         },
 
+        /** Determines if an object is an array.
+         *  @param {object} obj A JavaScript object to test
+         *  @return {boolean} True if the object is an array
+         * @memberOf js.LGObject#
+         */
+        isArray: function (obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        },
+
         /**
          * Displays a message to the console, and, optionally, also
          * publishes it. If window.gLogMessageBox is defined, message is also
@@ -655,7 +664,6 @@ define([
         /**
          * Constructs an LGDependency.
          *
-         * @constructor
          * @class
          * @name js.LGDependency
          * @classdesc
