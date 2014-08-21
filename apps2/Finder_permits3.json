@@ -37,7 +37,7 @@
         }],
         "featureSearcher.displayLayers": [{
             "id": "Permits",
-            "fields": ["PERMITID"],
+            "fields": ["PERMITTYPE", "APPLICANT"],
             "type": "FeatureLayer"
         }],
         "highlighter.showFeaturePopup": true,

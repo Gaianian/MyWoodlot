@@ -27,7 +27,7 @@
         "searchBox.hint": "number",
         "featureSearcher.searchLayerName": "Permits",
         "featureSearcher.searchFields": "PERMITID,APPLICANT,PERMITTYPE",
-        "featureSearcher.displayFields": "APPLICANT",
+        "featureSearcher.displayFields": "PERMITID,APPLICANT",
         "featureSearcher.searchLayersString": "",
         "featureSearcher.displayLayersString": "",
         "highlighter.showFeaturePopup": true,
