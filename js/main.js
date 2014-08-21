@@ -1,4 +1,4 @@
-/*global define,dojo,esri,js,unescape,console,require,document,jsapi_i18n:true */
+﻿/*global define,dojo,esri,js,unescape,console,require,jsapi_i18n:true */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,evil:true,regexp:true */
 /*
  | Copyright 2014 Esri
