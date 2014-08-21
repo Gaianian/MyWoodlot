@@ -1571,7 +1571,7 @@ define([
             this.caseInsensitiveSearch = this.toBoolean(this.caseInsensitiveSearch, true);
             this.ready = new Deferred();
 
-            // Normalize display field--it could be a string with field (s), an empty string, an array,
+            // Normalize display field--it could be a string with field(s), an empty string, an array,
             // or undefined
             if (this.displayField) {
                 if (!this.isArray(this.displayField)) {
@@ -1879,7 +1879,7 @@ define([
 
                     // Use the display field for representing the results if possible
                     representativeLabel = "";
-                    if (pThis.displayField) {
+                    if (pThis.displayField && pThis.displayField.length > 0) {
                         array.forEach(pThis.displayField, function (displayFieldName) {
                             if (item.attributes[displayFieldName]) {
                                 if (representativeLabel.length > 0) {
@@ -2169,7 +2169,7 @@ define([
          * @override
          */
         createSearchersList: function () {
-            var deferralWaitList = [], featureLayerNames = [],
+            var pThis = this, deferralWaitList = [], featureLayerNames = [],
                 featureDisplayFields = [], i, searcherName, searcher;
             this.searchers = [];
 
@@ -2193,7 +2193,8 @@ define([
                 this.searchLayers = [];
                 if (this.searchLayersString) {
                     this.searchLayers = JSON.parse(this.searchLayersString);
-                } else if (this.searchLayerName && this.searchLayerName.length > 0) {
+                } else if (this.searchLayerName && this.searchLayerName.length > 0 &&
+                           this.searchFields && this.searchFields.length > 0) {
                     featureLayerNames = this.searchLayerName.split(",");
                     for (i = 0; i < featureLayerNames.length; i = i + 1) {
                         this.searchLayers.push({
@@ -2214,18 +2215,33 @@ define([
                     this.displayLayers = JSON.parse(this.displayLayersString);
                 } else if (this.displayFields && this.displayFields.length > 0) {
                     featureDisplayFields = this.displayFields.split(",");
-                    for (i = 0; i < featureLayerNames.length; i = i + 1) {
+                    for (i = 0; i < this.searchLayers.length; i = i + 1) {
                         this.displayLayers.push({
-                            "id": featureLayerNames[i].trim(),
-                            "fields": (featureDisplayFields[i] || "").trim(),
+                            "id": this.searchLayers[i].id,
+                            "fields": featureDisplayFields,
                             "type": "FeatureLayer"
                         });
                     }
                 }
             }
 
+            // Define a function for matching a layer's display definition with its search definition;
+            // we put it here to get it out of the loop below
+            function findCorrespondingSearchLayer(displayLayerStruct) {
+                if (pThis.searchLayers[i].id === displayLayerStruct.id) {
+                    featureDisplayFields = displayLayerStruct.fields;
+                    return true;
+                }
+                return false;
+            }
+
             // Construct the searchers and build a list of their ready state deferrals
             for (i = 0; i < this.searchLayers.length; i = i + 1) {
+                // Get the display fields for this layer
+                featureDisplayFields = [];
+                array.some(this.displayLayers, findCorrespondingSearchLayer);
+
+                // Create the layer
                 searcherName = this.rootId + "_" + this.searchers.length;
                 searcher = new js.LGSearchFeatureLayer({
                     appConfig: this.appConfig,
@@ -2237,9 +2253,8 @@ define([
                     searchPattern: this.searchPattern,
                     caseInsensitiveSearch: this.caseInsensitiveSearch,
                     searchLayerName: this.searchLayers[i].id,
-                    searchFields: this.searchLayers[i].fields,  //???
-                    displayField: this.displayLayers[i].fields  //??? sync between two arrays
-                    //displayField: featureDisplayFields[i]     //???
+                    searchFields: this.searchLayers[i].fields,
+                    displayField: featureDisplayFields
                 });
                 this.searchers.push(searcher);
                 deferralWaitList.push(searcher.ready);
@@ -2333,7 +2348,7 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
+            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch, numberOfColumns = 3;  //???
 
             // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
@@ -2362,7 +2377,6 @@ define([
             //   3. data grid list of results, with each result's display field occupying
             //      its own column in the grid ("data grid")
             // Assign the appropriate methods to support the desired display type.
-            var numberOfColumns = 3;  //???
             switch (this.displayResultsAs) {
             case "single-line":
                 this.displayResults = new js.LGSearchResultsDisplaySingleline(this);
@@ -2625,8 +2639,7 @@ define([
                 }
                 formatted += parts[i];
             }
-            if (parts.length > 1)
-            {
+            if (parts.length > 1) {
                 formatted += "<hr>";
             }
             return formatted;
@@ -2687,7 +2700,7 @@ define([
          * @param {object} searchUI the js.LGSearchBoxByText that this object works with
          */
         constructor: function (searchUI, numberOfColumns) {
-            var i, columnHeadings = {}, CustomGrid, resultsListBox, resultsListBoxSize, gridDiv;
+            var i, CustomGrid, columnHeadings = [], resultsListBox, gridDiv;
 
             this.numberOfColumns = numberOfColumns;
 
@@ -2699,7 +2712,7 @@ define([
             resultsListBox = domConstruct.create("div",
                 {className: this.searchUI.resultsListBoxClass, style: {overflow: "none"}},
                 this.searchUI.rootId);
-            resultsListBoxSize = domGeom.getMarginBox(resultsListBox);
+            //??? resultsListBoxSize = domGeom.getMarginBox(resultsListBox);
 
             // Allocate columns for the specified number of results display columns
             for (i = 1; i <= numberOfColumns; ++i) {
@@ -2712,12 +2725,6 @@ define([
                 columns: columnHeadings,
                 selectionMode: "single" // for Selection; only select a single row at a time
             }, gridDiv);
-
-            // Enable grid row selection to publish the search result event
-            this.rowClick = this.grid.on(".dgrid-row:click", function (event) {
-                var row = pThis.grid.row(event);
-                searcher.publish(pThis.publish, row.data.data);
-            });
 
             this.searchBusy = domConstruct.create("div",
                 {
@@ -2783,7 +2790,7 @@ define([
             // Format the resultsList for the grid
             i = 1;
             array.forEach(resultsList, function (item) {
-                var parts, columnHeadings, row = {};
+                var parts, row = {};
                 row.data = item.data;
 
                 parts = item.label.split(searcher.fieldSeparatorChar());
