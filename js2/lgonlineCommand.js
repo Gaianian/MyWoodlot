@@ -34,8 +34,6 @@ define([
     "dijit/layout/ContentPane",
     "dojox/gfx",
     "dojox/gfx/utils",
-    "dgrid/Grid",
-    "dgrid/Selection",
     "esri/dijit/Legend",
     "esri/dijit/BasemapGallery",
     "esri/dijit/Basemap",
@@ -67,8 +65,6 @@ define([
     ContentPane,
     gfx,
     gfxUtils,
-    Grid,
-    Selection,
     Legend,
     BasemapGallery,
     Basemap,
@@ -2350,7 +2346,7 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch, numberOfColumns = 2;  //???
+            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
 
             // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
@@ -2376,15 +2372,10 @@ define([
             //      each result displays more than one field (default or "multiline")
             //   2. single-line list of results, with " / " separating the fields in each
             //      result if that result displays more than one field ("single-line")
-            //   3. data grid list of results, with each result's display field occupying
-            //      its own column in the grid ("data grid")
             // Assign the appropriate methods to support the desired display type.
             switch (this.displayResultsAs) {
             case "single-line":
                 this.displayResults = new js.LGSearchResultsDisplaySingleline(this);
-                break;
-            case "data grid":
-                this.displayResults = new js.LGSearchResultsDisplayDataGrid(this, numberOfColumns);
                 break;
             default:
                 this.displayResults = new js.LGSearchResultsDisplayMultiline(this);
@@ -2683,137 +2674,6 @@ define([
                 formatted += parts[i];
             }
             return formatted;
-        }
-    });
-
-    //========================================================================================================================//
-
-    declare("js.LGSearchResultsDisplayDataGrid", js.LGSearchResultsDisplay, {
-        /**
-         * Constructs an LGSearchResultsDisplayDataGrid.
-         *
-         * @constructor
-         * @class
-         * @name js.LGSearchResultsDisplayDataGrid
-         * @extends js.LGSearchResultsDisplay
-         * @classdesc
-         * Provides a UI display of a list of results. It is contained in and works
-         * with js.LGSearchBoxByText. The display is based on a dgrid.
-         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
-         */
-        constructor: function (searchUI, numberOfColumns) {
-            var i, CustomGrid, columnHeadings = {}, resultsListBox, gridDiv;
-
-            this.numberOfColumns = numberOfColumns;
-
-            // Create a new constructor by mixing in the desired dgrid components
-            CustomGrid = declare([ Grid, Selection ]);
-
-            // Now, create an instance of our custom grid which
-            // have the features we added!
-            resultsListBox = domConstruct.create("div",
-                {className: this.searchUI.resultsListBoxClass, style: {overflow: "none"}},
-                this.searchUI.rootId);
-            //??? resultsListBoxSize = domGeom.getMarginBox(resultsListBox);
-
-            // Allocate columns for the specified number of results display columns
-            for (i = 1; i <= numberOfColumns; ++i) {
-                columnHeadings["col" + i] = "";
-            }
-
-            gridDiv = domConstruct.create("div",
-                {style: {height: "98%"}}, resultsListBox);
-            this.grid = new CustomGrid({
-                columns: columnHeadings,
-                selectionMode: "single" // for Selection; only select a single row at a time
-            }, gridDiv);
-
-            this.searchBusy = domConstruct.create("div",
-                {
-                    className: this.searchUI.resultsListSearchingClass,
-                    style: "position:absolute;top:0px;display:none"
-                },
-                resultsListBox);
-        },
-
-        /**
-         * Clears the area where the search results are shown.
-         * @memberOf js.LGSearchResultsDisplayDataGrid#
-         * @override
-         */
-        clearResultsBox: function () {
-            // Clear the row-click handler
-            if (this.rowClick) {
-                this.rowClick.remove();
-                this.rowClick = null;
-            }
-
-            // Clear the rows
-            this.grid.refresh();
-            this.grid.renderArray([]);
-        },
-
-        /**
-         * Shows that a search is active.
-         * @memberOf js.LGSearchResultsDisplayDataGrid#
-         * @override
-         */
-        showSearchingBusy: function () {
-            domStyle.set(this.searchBusy, "display", "inline-block");
-        },
-
-        /**
-         * Hides the active-search indication.
-         * @memberOf js.LGSearchResultsDisplayDataGrid#
-         * @override
-         */
-        hideSearchingBusy: function () {
-            domStyle.set(this.searchBusy, "display", "none");
-        },
-
-        /**
-         * Shows the results of a search.
-         * @param {object} searcher The searcher configured to work with this UI item
-         * @param {array} resultsList The list of search results after the searcher has
-         * processed them through its toList() function; array contains structures where
-         * label is tagged with "label" and data is tagged with "data"
-         * @memberOf js.LGSearchResultsDisplayDataGrid#
-         * @override
-         */
-        showResults: function (searcher, resultsList) {
-            var pThis = this, rows = [], i;
-
-            // Enable grid row selection to publish the search result event
-            this.rowClick = this.grid.on(".dgrid-row:click", function (event) {
-                var row = pThis.grid.row(event);
-                searcher.publish(pThis.searchUI.publish, row.data.data);
-            });
-
-            // Format the resultsList for the grid
-            i = 1;
-            array.forEach(resultsList, function (item) {
-                var parts, row = {};
-                row.data = item.data;
-
-                parts = item.label.split(searcher.fieldSeparatorChar());
-                for (i = 1; i <= pThis.numberOfColumns; ++i) {
-                    row["col" + i] = parts[i - 1] || "";
-                }
-
-                rows.push(row);
-            });
-
-            // Add the rows to the grid; recommendation from kfranqueiro
-            // (https://github.com/SitePen/dgrid/issues/170#issuecomment-21080121)
-            // is to refresh before renderArray when re-using a grid
-            this.grid.refresh();
-            this.grid.renderArray(rows);
-
-            // Set the sort here rather than in the grid constructor so that the UI sort direction
-            // arrow appears; if one doesn't sort or sets the sort in the constructor, the arrow
-            // doesn't appear until the user clicks the column heading, and if the heading has
-            // empty text, it isn't even rendered until the click
-            this.grid.set("sort", "col1", false);
         }
     });
 
