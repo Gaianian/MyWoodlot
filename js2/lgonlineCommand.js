@@ -2348,7 +2348,7 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch, numberOfColumns = 3;  //???
+            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch, numberOfColumns = 2;  //???
 
             // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
@@ -2700,7 +2700,7 @@ define([
          * @param {object} searchUI the js.LGSearchBoxByText that this object works with
          */
         constructor: function (searchUI, numberOfColumns) {
-            var i, CustomGrid, columnHeadings = [], resultsListBox, gridDiv;
+            var i, CustomGrid, columnHeadings = {}, resultsListBox, gridDiv;
 
             this.numberOfColumns = numberOfColumns;
 
