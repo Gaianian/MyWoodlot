@@ -1690,7 +1690,9 @@ define([
                             array.some(opLayers, function (layer) {
                                 if (layer.title === pThis.searchLayerName || layer.id === pThis.searchLayerName) {
                                     pThis.layer = layer;
-                                    pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
+                                    if (!layer.disablePopup && layer.popupInfo) {
+                                        pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
+                                    }
                                     return true;
                                 }
                                 return false;
