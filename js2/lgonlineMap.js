@@ -505,6 +505,11 @@ define([
                 return false;
             });
 
+            // Try name as an id
+            if (!layer) {
+                layer = this.appConfig.map.getLayer(name);
+            }
+
             return layer;
         },
 
