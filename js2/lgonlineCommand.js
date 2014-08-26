@@ -2171,8 +2171,8 @@ define([
                 featureDisplayFields = [], i, searcherName, searcher;
             this.searchers = [];
 
-            // Get the list of layers and fields to search.  If this.searchLayers
-            // is defined, we have a combination structure with both, e.g.,
+            // Get the list of layers and fields to search. this.searchLayersString is a
+            // string of JSON that provides a structure with both, e.g.,
             //     [{
             //         "id": "Watershed173811_8687.0",
             //         "fields": ["gnis_name", "reachcode"],
@@ -2182,44 +2182,45 @@ define([
             //         "fields": ["gnis_name"],
             //         "type": "FeatureLayer"
             //     }]
-            // Alternatively, this.searchLayersString is string of JSON that provides this
-            // structure. Yet another alternative uses the fields from the earlier version--
-            // this.searchLayerName and this.searchFields--that also provide  backwards
+            // An alternative specification uses the fields from the earlier version--
+            // this.searchLayerName and this.searchFields--to provide backwards
             // compatibility. In this section, we normalize the parameters that we have to
-            // the this.searchLayers structure.
-            if (!this.searchLayers) {
-                this.searchLayers = [];
-                if (this.searchLayersString) {
+            // a this.searchLayers structure.
+            this.searchLayers = [];
+            if (this.searchLayersString) {
+                try {
                     this.searchLayers = JSON.parse(this.searchLayersString);
-                } else if (this.searchLayerName && this.searchLayerName.length > 0 &&
-                           this.searchFields && this.searchFields.length > 0) {
-                    featureLayerNames = this.searchLayerName.split(",");
-                    for (i = 0; i < featureLayerNames.length; i = i + 1) {
-                        this.searchLayers.push({
-                            "id": featureLayerNames[i].trim(),
-                            "fields": this.searchFields.split(","),
-                            "type": "FeatureLayer"
-                        });
-                    }
+                } catch (ignore) {
+                }
+            } else if (this.searchLayerName && this.searchLayerName.length > 0 &&
+                       this.searchFields && this.searchFields.length > 0) {
+                featureLayerNames = this.searchLayerName.split(",");
+                for (i = 0; i < featureLayerNames.length; i = i + 1) {
+                    this.searchLayers.push({
+                        "id": featureLayerNames[i].trim(),
+                        "fields": this.searchFields.split(","),
+                        "type": "FeatureLayer"
+                    });
                 }
             }
 
-            // Get the desired fields to be used for the display.  If this.displayLayers
-            // is defined, we have a combination structure with both; it'll look like
-            // this.searchLayers above.
-            if (!this.displayLayers) {
-                this.displayLayers = [];
-                if (this.displayLayersString) {
+            // Get the desired fields to be used for the display. this.displayLayersString
+            // is defined the same way as this.searchLayersString. For backwards compatibility,
+            // we also support this.displayFields.
+            this.displayLayers = [];
+            if (this.displayLayersString) {
+                try {
                     this.displayLayers = JSON.parse(this.displayLayersString);
-                } else if (this.displayFields && this.displayFields.length > 0) {
-                    featureDisplayFields = this.displayFields.split(",");
-                    for (i = 0; i < this.searchLayers.length; i = i + 1) {
-                        this.displayLayers.push({
-                            "id": this.searchLayers[i].id,
-                            "fields": featureDisplayFields,
-                            "type": "FeatureLayer"
-                        });
-                    }
+                } catch (ignore) {
+                }
+            } else if (this.displayFields && this.displayFields.length > 0) {
+                featureDisplayFields = this.displayFields.split(",");
+                for (i = 0; i < this.searchLayers.length; i = i + 1) {
+                    this.displayLayers.push({
+                        "id": this.searchLayers[i].id,
+                        "fields": featureDisplayFields,
+                        "type": "FeatureLayer"
+                    });
                 }
             }
 

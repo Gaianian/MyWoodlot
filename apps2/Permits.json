@@ -20,34 +20,13 @@
         "http://solutions.arcgis.com/state-government/help/finder/"
      ],
     "values": {
-        "webmap": "36e0c500b92c4b12b7a7844ce9f4bbdd",
+        "webmap": "12feb2fc939d41ad8fd81750b91fde18",
         "titleBar.title": "Finder Try-It",
         "titleBar.iconUrl": "images/onlineapp.png",
         "colorizer.theme": "SeaBlues",
         "searchBox.hint": "number",
-        "featureSearcher.searchLayerName": "",
-        "featureSearcher.searchFields": "",
-        "featureSearcher.displayFields": "",
         "featureSearcher.searchLayersString": "",
         "featureSearcher.displayLayersString": "",
-        "featureSearcher.searchLayers": [{
-            "id": "Permits",
-            "fields": ["PERMITID", "PERMITTYPE", "APPLICANT"],
-            "type": "FeatureLayer"
-        }, {
-            "id": "Permits - County",
-            "fields": ["NAME", "KEY_"],
-            "type": "FeatureLayer"
-        }],
-        "featureSearcher.displayLayers": [{
-            "id": "Permits",
-            "fields": ["PERMITTYPE", "APPLICANT"],
-            "type": "FeatureLayer"
-        }, {
-            "id": "Permits - County",
-            "fields": ["NAME", "KEY_"],
-            "type": "FeatureLayer"
-        }],
         "highlighter.showFeaturePopup": true,
         "highlighter.highlightZoomLevel": 16,
         "basemapBox.basemapgroupTitle": "",
@@ -119,17 +98,31 @@
             "type": "string",
             "tooltip": "Search hint (e.g. Find a Parcel, Find a Park)"
         }, {
-            "label": "Find Layers and Fields",
-            "fieldName": "featureSearcher.searchLayerString",
-            "type": "string",
-            "tooltip": "Layer and field structure",
-            "placeholder": "[{\"id\": \"CodedValues_2288\",\"fields\": [\"Italian\", \"French\", \"Description\"],\"type\": \"FeatureLayer\"}]"
+           "type": "multilayerandfieldselector",
+           "fieldOptions": {
+              "supportedTypes": ["esriFieldTypeString", "esriFieldTypeSmallInteger", "esriFieldTypeInteger"]
+           },
+           "layerOptions": {
+              "supportedTypes": [
+                "FeatureLayer"
+              ],
+               "geometryTypes": ["esriGeometryPoint", "esriGeometryLine", "esriGeometryPolyline"]
+           },
+           "fieldName": "featureSearcher.searchLayersString",
+           "label": "Find Layers and Fields"
         }, {
-            "label": "Result Display Fields",
-            "fieldName": "featureSearcher.displayFields",
-            "type": "string",
-            "tooltip": "Comma-separated list of Find Layer field names in the same order as the Find Layers to which they apply. Values in these fields will be returned in the results list. If the layer in which a result was found does not have a corresponding field in this list, the Fearch Field value is returned. Only one Result Display Field can be specified for each Find Layer.",
-            "placeholder": "FIELD1, FIELD2, …"
+           "type": "multilayerandfieldselector",
+           "fieldOptions": {
+               "supportedTypes": ["esriFieldTypeString", "esriFieldTypeSmallInteger", "esriFieldTypeInteger"]
+           },
+           "layerOptions": {
+              "supportedTypes": [
+                "FeatureLayer"
+              ],
+              "geometryTypes": ["esriGeometryPoint", "esriGeometryLine", "esriGeometryPolyline"]
+           },
+           "fieldName": "featureSearcher.displayLayersString",
+           "label": "Result Display Layers and Fields"
         }, {
             "label": "Zoom Level",
             "fieldName": "highlighter.highlightZoomLevel",
@@ -421,8 +414,7 @@
             "resultsListTableClass": "resultsListTable",
             "resultsListBodyClass": "resultsListBody",
             "resultsListSearchingClass": "resultsListSearching",
-            "resultsListEntryClass": "resultsListEntry",
-            "displayResultsAs": "multiline"
+            "resultsListEntryClass": "resultsListEntry"
         }
     }, {
         "classname": "js.LGCommand",
