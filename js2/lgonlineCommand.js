@@ -1576,7 +1576,7 @@ define([
             }
 
             // Default the Unicode identifier to the SQL-92 standard; PostgresSQL uses "U&"
-            this.unicodeIdentifier = this.unicodeIdentifier || "N";
+            this.unicodeIdentifier = this.unicodeIdentifier || this.appConfig.defaultUnicodeIdentifier || "";
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
         },
