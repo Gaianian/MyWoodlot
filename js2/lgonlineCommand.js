@@ -1576,7 +1576,7 @@ define([
             }
 
             // Default the Unicode identifier to the SQL-92 standard; PostgresSQL uses "U&"
-            this.unicodeIdentifier = this.unicodeIdentifier || "N";
+            this.unicodeIdentifier = this.unicodeIdentifier || this.appConfig.defaultUnicodeIdentifier || "";
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
         },
@@ -2444,7 +2444,7 @@ define([
                                 }
                             }, function (error) {
                                 // Query failure
-                                pThis.log("LGSearchBoxByText_1: " + error.message);
+                                pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
 
                                 lastSearchString = "";  // so that we can quickly repeat this search
                                 pThis.displayResults.hideSearchingBusy();
