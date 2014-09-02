@@ -1737,24 +1737,30 @@ define([
          * Reports layers that don't appear in the map.
          * @param {string} searchLayerName Name to report for search layer
          * @param {string} [reason] Error message; if omitted, "@messages.searchLayerMissing"
-         *        is used
+         *        is used if a searchLayerName is provided, "@messages.noSearchLayerConfigured"
+         *        otherwise
          * @memberOf js.LGSearchFeatureLayer#
          */
         showSearchLayerError: function (searchLayerName, reason) {
-            var message, searchLayer, pThis = this;
+            var message = "", searchLayer, pThis = this;
 
-            message = "\"" + (searchLayerName || "") + "\"<br>";
-            searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
-                // For a search layer with no available fields, just show its name and
-                // some guidance about what to do
-                message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
-
+            // Report the problematic layer (or lack thereof)
+            if (!searchLayerName) {
+                message += this.checkForSubstitution("@messages.noSearchLayerConfigured");
             } else {
-                if (!reason) {
-                    reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                message += "\"" + searchLayerName + "\"<br>";
+                searchLayer = this.mapObj.getLayer(searchLayerName);
+                if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
+                    // For a search layer with no available fields, just show its name and
+                    // some guidance about what to do
+                    message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
+
+                } else {
+                    if (!reason) {
+                        reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                    }
+                    message += reason;
                 }
-                message += reason;
             }
 
             // Add map layers to message
@@ -2318,24 +2324,30 @@ define([
          * Reports layers that don't appear in the map.
          * @param {string} searchLayerName Name to report for search layer
          * @param {string} [reason] Error message; if omitted, "@messages.searchLayerMissing"
-         *        is used
+         *        is used if a searchLayerName is provided, "@messages.noSearchLayerConfigured"
+         *        otherwise
          * @memberOf js.LGSearchFeatureLayerMultiplexer#
          */
         showSearchLayerError: function (searchLayerName, reason) {
-            var message, searchLayer, pThis = this;
+            var message = "", searchLayer, pThis = this;
 
-            message = "\"" + (searchLayerName || "") + "\"<br>";
-            searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
-                // For a search layer with no available fields, just show its name and
-                // some guidance about what to do
-                message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
-
+            // Report the problematic layer (or lack thereof)
+            if (!searchLayerName) {
+                message += this.checkForSubstitution("@messages.noSearchLayerConfigured");
             } else {
-                if (!reason) {
-                    reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                message += "\"" + searchLayerName + "\"<br>";
+                searchLayer = this.mapObj.getLayer(searchLayerName);
+                if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
+                    // For a search layer with no available fields, just show its name and
+                    // some guidance about what to do
+                    message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
+
+                } else {
+                    if (!reason) {
+                        reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                    }
+                    message += reason;
                 }
-                message += reason;
             }
 
             // Add map layers to message
