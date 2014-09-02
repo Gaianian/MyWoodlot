@@ -1888,10 +1888,10 @@ define([
                     representativeLabel = "";
                     if (pThis.displayField && pThis.displayField.length > 0) {
                         array.forEach(pThis.displayField, function (displayFieldName) {
+                            if (representativeLabel.length > 0) {
+                                representativeLabel += pThis.fieldSeparatorChar();
+                            }
                             if (item.attributes[displayFieldName]) {
-                                if (representativeLabel.length > 0) {
-                                    representativeLabel += pThis.fieldSeparatorChar();
-                                }
                                 representativeLabel += item.attributes[displayFieldName].toString();
                             }
                         });
@@ -2661,10 +2661,12 @@ define([
         formatItemLabel: function (label, fieldSeparatorChar) {
             var i, formatted = "", parts = label.split(fieldSeparatorChar);
             for (i = 0; i < parts.length; ++i) {
-                if (i > 0) {
-                    formatted += "<br>";
+                if (parts[i].length > 0) {
+                    if (formatted.length > 0) {
+                        formatted += "<br>";
+                    }
+                    formatted += parts[i];
                 }
-                formatted += parts[i];
             }
             if (parts.length > 1) {
                 formatted += "<hr>";
