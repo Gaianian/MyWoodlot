@@ -110,7 +110,7 @@
                 "supportedTypes": ["esriFieldTypeString", "esriFieldTypeSmallInteger", "esriFieldTypeInteger"]
             }
         }, {
-            "label": "Result Display Layers and Fields",
+            "label": "Result Display Layers and Fields (optional)",
             "fieldName": "featureSearcher.displayLayersString",
             "type": "multilayerandfieldselector",
             "tooltip": "Optionally, choose to return values from one or several fields in the search results. If no Result Display Layer is specified for a Find Layer, the Find Field value will be returned in the search results.",
