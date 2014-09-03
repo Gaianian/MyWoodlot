@@ -1575,7 +1575,7 @@ define([
                 }
             }
 
-            // Default the Unicode identifier to the SQL-92 standard; PostgresSQL uses "U&"
+            // ASCII SQL search if ""; for Unicode SQL, use "U&" for PostgreSQL and "N" for everything else
             this.unicodeIdentifier = this.unicodeIdentifier || this.appConfig.defaultUnicodeIdentifier || "";
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
