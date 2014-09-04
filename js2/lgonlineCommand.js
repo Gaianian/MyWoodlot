@@ -2961,10 +2961,12 @@ define([
                             for (field = 0; field < mapLayer.layerObject.fields.length; field += 1) {
                                 if (mapLayer.layerObject.fields[field].name === this.fieldname1) {
 
-                                    // Found a layer with the configured field; save the layer
+                                    // Found a layer with the configured field; save the layer and
+                                    // its existing definition expression, if any
                                     layerAndDefExpObject = {
                                         "layerObject": mapLayer.layerObject,
-                                        "fieldType": mapLayer.layerObject.fields[field].type
+                                        "fieldType": mapLayer.layerObject.fields[field].type,
+                                        "baseDefnExpr": mapLayer.layerObject.getDefinitionExpression() || ""
                                     };
                                     this.layers.push(layerAndDefExpObject);
 
@@ -3090,20 +3092,22 @@ define([
         */
         applyFilterCore: function () {
             array.forEach(this.layers, lang.hitch(this, function (layer) {
-                this.setLayerDefinitionExpression(layer.layerObject, layer.fieldType);
+                this.setLayerDefinitionExpression(layer.baseDefnExpr, layer.layerObject, layer.fieldType);
                 layer.layerObject.clearSelection();
             }));
         },
 
         /**
         * Filters the layer based on the definition expression
+        * @param {string} baseDefnExpr Baseline definition expression to maintain
         * @param {object} layer Layer to be filtered
         * @param {string|integer} fieldType Type of the floor field
         * @memberOf js.LGFilterLayers1#
         */
-        setLayerDefinitionExpression: function (layer, fieldType) {
-            var defExpression = layer.defaultDefinitionExpression;
+        setLayerDefinitionExpression: function (baseDefnExpr, layer, fieldType) {
+            var defExpression = "";
             try {
+                // Create the definition expression for the filter
                 if (this.value1 && this.value1 !== "") {
                     if (fieldType === "esriFieldTypeString") {
                         defExpression = string.substitute(this.defnExpression, {
@@ -3117,6 +3121,24 @@ define([
                         });
                     }
                 }
+
+                // Add in the baseline definition
+                if (baseDefnExpr.length > 0) {
+                    if (defExpression.length > 0) {
+                        defExpression += " AND ";
+                    }
+                    defExpression += baseDefnExpr;
+                }
+
+                // Add in the default definition expression
+                if (layer.defaultDefinitionExpression && layer.defaultDefinitionExpression.length > 0) {
+                    if (defExpression.length > 0) {
+                        defExpression += " AND ";
+                    }
+                    defExpression += layer.defaultDefinitionExpression;
+                }
+
+                // Set the definition in the layer
                 layer.setDefinitionExpression(defExpression);
             } catch (ignore) {
             }
