@@ -534,7 +534,7 @@
             "subject": ".titleBar.title",
             "tinyURLServiceURL": "",
             "tinyURLResponseAttribute": "data.url",
-            "shareUrl": "http://twitter.com/home/?status=${subject} ${url}",
+            "shareUrl": "https://twitter.com/intent/tweet?url=${url}&text=${subject}",
             "busyIndicator": "busyIndicator",
             "dependencyId": "map"
         }
