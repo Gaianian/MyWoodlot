@@ -16,16 +16,20 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineFrame", [
+define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/on",
+    "dojo/dom-geometry",
     "dojo/dom-style",
     "dojo/_base/array",
     "dojo/_base/lang",
     "js/lgonlineBase"
 ], function (
+    declare,
     domConstruct,
     on,
+    domGeom,
     domStyle,
     array,
     lang
@@ -33,7 +37,7 @@ define("js/lgonlineFrame", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGColorizer", js.LGObject, {
+    declare("js.LGColorizer", js.LGObject, {
         /**
          * Constructs an LGColorizer.
          *
@@ -120,7 +124,7 @@ define("js/lgonlineFrame", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFrame", js.LGGraphic, {
+    declare("js.LGFrame", js.LGGraphic, {
         /**
          * Constructs an LGFrame.
          *
@@ -230,8 +234,8 @@ define("js/lgonlineFrame", [
 
             // Resize the content frame to fill the rootDiv not occupied by the header frame
             if (this.headerDiv && this.contentDiv) {
-                rootDivBox = dojo.marginBox(this.rootDiv);
-                headerDivBox = dojo.marginBox(this.headerDiv);
+                rootDivBox = domGeom.getMarginBox(this.rootDiv);
+                headerDivBox = domGeom.getMarginBox(this.headerDiv);
 
                 contentHeight = rootDivBox.h - headerDivBox.h;
                 if (contentHeight > 0) {
@@ -246,7 +250,7 @@ define("js/lgonlineFrame", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGGallery", js.LGGraphic, {
+    declare("js.LGGallery", js.LGGraphic, {
         /**
          * Constructs an LGGallery.
          *
@@ -346,7 +350,7 @@ define("js/lgonlineFrame", [
             on(this.rightArrow, "click", lang.hitch(this, this.shiftRight));
 
             // zeroItemWidth only works if gallery is visible
-            this.zeroItemWidth = dojo.marginBox(this.rootDiv).w;
+            this.zeroItemWidth = domGeom.getMarginBox(this.rootDiv).w;
             this.itemWidth = 0;
             this.numItems = 0;
             this.iFirstItem = 0;
@@ -386,7 +390,7 @@ define("js/lgonlineFrame", [
             this.numItems += 1;
             if (!this.firstItem) {
                 this.firstItem = item;
-                this.itemWidth = dojo.marginBox(item).w;
+                this.itemWidth = domGeom.getMarginBox(item).w;
             }
 
             // Readjust the placement now that we've added an item
@@ -424,10 +428,10 @@ define("js/lgonlineFrame", [
 
             // Patch zeroItemWidth in case the gallery was created initially invisible
             if (this.zeroItemWidth === 0) {
-                this.zeroItemWidth = dojo.marginBox(this.rootDiv).w;
+                this.zeroItemWidth = domGeom.getMarginBox(this.rootDiv).w;
             }
 
-            parentWidth = dojo.marginBox(this.rootDiv.parentNode).w;
+            parentWidth = domGeom.getMarginBox(this.rootDiv.parentNode).w;
             desiredGalleryWidth = this.zeroItemWidth + (this.numItems * this.itemWidth);
 
             if (0 === this.numItems) {
@@ -514,7 +518,7 @@ define("js/lgonlineFrame", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGTitleBar", js.LGGraphic, {
+    declare("js.LGTitleBar", js.LGGraphic, {
         /**
          * Constructs an LGTitleBar.
          *

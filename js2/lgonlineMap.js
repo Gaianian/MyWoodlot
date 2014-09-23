@@ -16,7 +16,8 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineMap", [
+define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
@@ -31,6 +32,7 @@ define("js/lgonlineMap", [
     "esri/tasks/ProjectParameters",
     "js/lgonlineBase"
 ], function (
+    declare,
     domConstruct,
     dom,
     on,
@@ -47,7 +49,7 @@ define("js/lgonlineMap", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMapDependency", js.LGDependency, {
+    declare("js.LGMapDependency", js.LGDependency, {
         /**
          * Constructs an LGMapDependency.
          *
@@ -75,7 +77,7 @@ define("js/lgonlineMap", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMap", js.LGGraphic, {
+    declare("js.LGMap", js.LGGraphic, {
         /**
          * Constructs an LGMap.
          * <br><b>N.B.: this implementation does not support more
@@ -181,8 +183,11 @@ define("js/lgonlineMap", [
             //   1. webmap visible extent when saved
             //   2. application extent on the application item
             //   3. configured in LGMap item
-            //   4. supplied in the URL using the format ex=xmin,ymin,xmax,ymax[,wkid=102100],
+            //   4. supplied in the URL using the format ex=xmin,ymin,xmax,ymax[,wkid]
             //      e.g., ex=-9279312,5238092,-9259324,5256972,102100
+            //      or as ex=xmin,ymin,xmax,ymax[,wkt]
+            //      e.g., ex=1028046,1861694,1028981,1862568,PROJCS%5B%22NAD_1983_HARN_StatePlane_Illinois_East_FIPS_1201%22%2CGEOGCS%5B%22...%5D%2CUNIT%5B%22Foot_US%22%2C0.3048006096012192%5D%5D
+            //      If wkid and wkt are not supplied, the coordinates are intepreted as wkid 102100
             if (this.xmin && this.ymin && this.xmax && this.ymax) {
                 try {
                     extent = {
@@ -206,8 +211,8 @@ define("js/lgonlineMap", [
 
             // Override the initial extent from the configuration with URL extent values;
             // need to have a complete set of the latter
-            if (this.appConfig.urlValues.ex) {
-                urlExtent = this.getExtentsFromString(this.appConfig.urlValues.ex);
+            if (this.appConfig.ex) {
+                urlExtent = this.getExtentsFromString(this.appConfig.ex);
                 if (urlExtent) {
                     extent = urlExtent;
                 }
@@ -248,20 +253,10 @@ define("js/lgonlineMap", [
                 map.spatialReference = new esri.SpatialReference(102100);
             }
 
-            //this.listeners.push(
-            //    dojo.connect(pThis.appConfig.map, "onUnload", function () {  // release event listeners upon unload
-            //        // http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/inside_events.html
-            //        dojo.forEach(var fred in this.listeners) {
-            //            dojo.disconnect(fred);
-            //        }
-            //    });
-            //);
-            //pThis.listeners.push(
             on(window, "resize", lang.hitch(this, function () {
                 map.resize();
                 map.reposition();
             }));
-            //);
 
             // Set up a graphics layer for receiving position updates and feature highlights
             this.tempGraphicsLayer = this.createGraphicsLayer("tempGraphicsLayer");
@@ -365,13 +360,18 @@ define("js/lgonlineMap", [
          */
         setZoom: function (zoom) {
             var minZoom = this.appConfig.map.getMinZoom(),
-                maxZoom = this.appConfig.map.getMaxZoom();
+                maxZoom = this.appConfig.map.getMaxZoom(),
+                zoomFinished;
 
             // Constrain the zoom to the map's zoom levels if the map has them
             if (minZoom >= 0 && maxZoom >= 0) {
                 zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+                zoomFinished = this.appConfig.map.setZoom(zoom);
+            } else {
+                zoomFinished = new Deferred();
+                zoomFinished.resolve();
             }
-            return this.appConfig.map.setZoom(zoom);
+            return zoomFinished;
         },
 
         /**
@@ -434,6 +434,11 @@ define("js/lgonlineMap", [
             var minmax, extent = null, wkid, iPROJCS;
 
             // Get the four to five comma-separated parts
+            // If extentString is an array, then the URL contained more than one
+            // ex parameter; the last one is what we want
+            if (extentString instanceof Array) {
+                extentString = extentString[extentString.length - 1];
+            }
             minmax = extentString.split(",");
 
             // If there are no commas, then they're escaped.
@@ -461,13 +466,17 @@ define("js/lgonlineMap", [
                 };
 
                 extent.spatialReference = {};
-                if (minmax.length > 4) {
+                if (minmax.length === 5) {
                     wkid = Number(minmax[4]);
                     if (!isNaN(wkid)) {
                         extent.spatialReference.wkid = wkid;
                     } else {
-                        extent.spatialReference.wkt = decodeURIComponent(minmax[4]);
+                        extent.spatialReference.wkid = 102100;
                     }
+                } else if (minmax.length > 5) {
+                    // The boilerplate unescapes url params, so our split above also splits the wkt;
+                    // rejoin the parts of the wkt
+                    extent.spatialReference.wkt = minmax.slice(4).join(",");
                 } else {
                     extent.spatialReference.wkid = 102100;
                 }
@@ -495,6 +504,11 @@ define("js/lgonlineMap", [
                 }
                 return false;
             });
+
+            // Try name as an id
+            if (!layer) {
+                layer = this.appConfig.map.getLayer(name);
+            }
 
             return layer;
         },

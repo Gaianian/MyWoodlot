@@ -16,7 +16,8 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineDrawing", [
+define([
+    "dojo/_base/declare",
     "dojo/Deferred",
     "dojo/_base/Color",
     "dojo/on",
@@ -27,6 +28,7 @@ define("js/lgonlineDrawing", [
     "esri/symbols/SimpleFillSymbol",
     "js/lgonlineMap"
 ], function (
+    declare,
     Deferred,
     Color,
     on,
@@ -39,7 +41,7 @@ define("js/lgonlineDrawing", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGHighlighter", [js.LGObject, js.LGMapDependency], {
+    declare("js.LGHighlighter", [js.LGObject, js.LGMapDependency], {
         /**
          * Constructs an LGHighlighter.
          * <br>Highlights a polyline or polygon by drawing a line symbol

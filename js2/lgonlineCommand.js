@@ -16,10 +16,12 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineCommand", [
+define([
+    "dojo/_base/declare",
     "dojo/dom-construct",
     "dojo/dom",
     "dojo/on",
+    "dojo/dom-geometry",
     "dojo/Deferred",
     "dojo/DeferredList",
     "dojo/dom-style",
@@ -46,9 +48,11 @@ define("js/lgonlineCommand", [
     "js/lgonlineBase",
     "js/lgonlineMap"
 ], function (
+    declare,
     domConstruct,
     dom,
     on,
+    domGeom,
     Deferred,
     DeferredList,
     domStyle,
@@ -76,7 +80,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDropdownBox", js.LGGraphic, {
+    declare("js.LGDropdownBox", js.LGGraphic, {
         /**
          * Constructs an LGDropdownBox.
          *
@@ -147,7 +151,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMapBasedMenuBox", [js.LGDropdownBox, js.LGMapDependency], {
+    declare("js.LGMapBasedMenuBox", [js.LGDropdownBox, js.LGMapDependency], {
         /**
          * Constructs an LGMapBasedMenuBox.
          *
@@ -179,7 +183,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGBasemapBox", js.LGMapBasedMenuBox, {
+    declare("js.LGBasemapBox", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGBasemapBox.
          *
@@ -279,7 +283,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGDijitLegendBox", js.LGMapBasedMenuBox, {
+    declare("js.LGDijitLegendBox", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGDijitLegendBox.
          *
@@ -337,7 +341,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCallMethods", js.LGObject, {
+    declare("js.LGCallMethods", js.LGObject, {
         /**
          * Constructs an LGCallMethods and executes the list of tasks in
          * its definition.
@@ -375,7 +379,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGButton", js.LGGraphic, {
+    declare("js.LGButton", js.LGGraphic, {
         /**
          * Constructs an LGButton.
          *
@@ -574,7 +578,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGRadioButton", js.LGButton, {
+    declare("js.LGRadioButton", js.LGButton, {
         /**
          * Constructs an LGRadioButton.
          *
@@ -688,7 +692,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGRadioButtonController", js.LGObject, {
+    declare("js.LGRadioButtonController", js.LGObject, {
         /**
          * Constructs an LGRadioButtonController.
          *
@@ -780,7 +784,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCommand", [js.LGButton, js.LGDependency], {
+    declare("js.LGCommand", [js.LGButton, js.LGDependency], {
         /**
          * Constructs an LGCommand.
          *
@@ -878,7 +882,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGCommandToggle", js.LGCommand, {
+    declare("js.LGCommandToggle", js.LGCommand, {
         /**
          * Constructs an LGCommandToggle.
          *
@@ -993,7 +997,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGLaunchUrl", js.LGObject, {
+    declare("js.LGLaunchUrl", js.LGObject, {
         /**
          * Constructs an LGLaunchUrl.
          *
@@ -1020,7 +1024,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGPrintMap", js.LGMapBasedMenuBox, {
+    declare("js.LGPrintMap", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGPrintMap.
          *
@@ -1185,7 +1189,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFetchPrintedMap", [js.LGObject, js.LGMapDependency], {
+    declare("js.LGFetchPrintedMap", [js.LGObject, js.LGMapDependency], {
         /**
          * Constructs an LGFetchPrintedMap.
          *
@@ -1243,7 +1247,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGLocate", js.LGObject, {
+    declare("js.LGLocate", js.LGObject, {
         /**
          * Constructs an LGLocate.
          *
@@ -1317,7 +1321,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearch", js.LGObject, {
+    declare("js.LGSearch", js.LGObject, {
         /**
          * LGSearch
          *
@@ -1419,12 +1423,22 @@ define("js/lgonlineCommand", [
             }
 
             return repPoint;
+        },
+
+        /**
+         * Returns the character to be used by this searcher for
+         * separating fields.
+         * @return {string} The character
+         * @memberOf js.LGSearch#
+         */
+        fieldSeparatorChar: function () {
+            return "%";
         }
     });
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchAddress", [js.LGSearch, js.LGMapDependency], {
+    declare("js.LGSearchAddress", [js.LGSearch, js.LGMapDependency], {
         /**
          * Constructs an LGSearchAddress.
          *
@@ -1535,7 +1549,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchFeatureLayer", [js.LGSearch, js.LGMapDependency], {
+    declare("js.LGSearchFeatureLayer", [js.LGSearch, js.LGMapDependency], {
         /**
          * Constructs an LGSearchFeatureLayer.
          *
@@ -1553,14 +1567,16 @@ define("js/lgonlineCommand", [
             this.caseInsensitiveSearch = this.toBoolean(this.caseInsensitiveSearch, true);
             this.ready = new Deferred();
 
-            // Normalize display field--it could be a string with a field, an empty string, or undefined
+            // Normalize display field--it could be a string with field(s), an empty string, an array,
+            // or undefined
             if (this.displayField) {
-                // In case a list of display fields is provided because of a mixup with LGFeatureLayer
-                // vs. LGSearchFeatureLayerMultiplexer, just take the first field
-                this.displayField = this.displayField.split(",")[0].trim();
-            } else {
-                this.displayField = "";
+                if (!this.isArray(this.displayField)) {
+                    this.displayField = this.displayField.split(",");
+                }
             }
+
+            // ASCII SQL search if ""; for Unicode SQL, use "U&" for PostgreSQL and "N" for everything else
+            this.unicodeIdentifier = this.unicodeIdentifier || this.appConfig.defaultUnicodeIdentifier || "";
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
         },
@@ -1573,103 +1589,119 @@ define("js/lgonlineCommand", [
          */
         onDependencyReady: function () {
             // Now that the map (our dependency) is ready, get the URL of the search layer from it
-            var searchLayer, reason, splitFields, availableFields = ",", opLayers,
-                pThis = this, actualFieldList = [], generalOutFields;
+            var searchLayer, reason, fields, splitFields, availableFields = ",", opLayers,
+                pThis = this, actualFieldList = [], generalOutFields, missingFields = [];
 
             // Check that the search layer and fields exist
             if (this.searchLayerName) {
                 try {
                     searchLayer = this.mapObj.getLayer(this.searchLayerName);
-                    if (searchLayer && searchLayer.url &&
-                            searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
-                        this.searchURL = searchLayer.url;
+                    if (searchLayer && searchLayer.url) {
+                        fields = searchLayer.fields ||
+                            (searchLayer.resourceInfo && searchLayer.resourceInfo.fields);
+                        if (fields) {
+                            this.searchURL = searchLayer.url;
 
-                        // Check for existence of fields; start with a list of fields in the search layer
-                        array.forEach(searchLayer.resourceInfo.fields, function (layerField) {
-                            availableFields += layerField.name + ",";
-                        });
-
-                        // Only keep search fields that the layer has
-                        if (this.searchFields && 0 < this.searchFields.length) {
-                            splitFields = this.searchFields.split(",");
-                            this.searchFields = [];
-                            array.forEach(splitFields, function (searchField) {
-                                pThis.searchFields.push(searchField.trim());
+                            // Check for existence of fields; start with a list of fields in the search layer
+                            array.forEach(fields, function (layerField) {
+                                availableFields += layerField.name + ",";
                             });
 
-                            array.forEach(this.searchFields, function (searchField) {
-                                if (availableFields.indexOf("," + searchField + ",") >= 0) {
-                                    actualFieldList.push(searchField);
+                            // Only keep search fields that the layer has
+                            if (this.searchFields && 0 < this.searchFields.length) {
+                                // Convert the search fields to an array
+                                if (!this.isArray(this.searchFields)) {
+                                    splitFields = this.searchFields.split(",");
+                                    this.searchFields = [];
+                                    array.forEach(splitFields, function (searchField) {
+                                        pThis.searchFields.push(searchField.trim());
+                                    });
                                 }
+
+                                array.forEach(this.searchFields, function (searchField) {
+                                    if (availableFields.indexOf("," + searchField + ",") >= 0) {
+                                        actualFieldList.push(searchField);
+                                    }
+                                });
+                            } else {
+                                this.searchFields = [];
+                            }
+
+                            // Can we search for anything in this layer?
+                            if (actualFieldList.length === 0) {
+                                this.showSearchLayerFieldError(this.searchFields, this.searchLayerName, searchLayer);
+
+                                this.ready.reject(this);
+                                this.inherited(arguments);
+                                return;
+                            }
+
+                            // Does the layer contain the requested display field(s)?
+                            if (this.displayField) {
+                                array.forEach(this.displayField, function (displayFieldName) {
+                                    if (availableFields.indexOf("," + displayFieldName + ",") < 0) {
+                                        // Requested display field not found
+                                        missingFields.push(displayFieldName);
+                                    }
+                                });
+                                if (missingFields.length > 0) {
+                                    this.showSearchLayerFieldError(missingFields, this.searchLayerName, searchLayer);
+                                }
+                            }
+
+                            // If there are searchable fields, replace the requested search fields list with
+                            // the available search fields list
+                            this.searchFields = actualFieldList;
+
+                            // Set up our query task now that we have the URL to the layer
+                            this.objectIdField = searchLayer.objectIdField || "ObjectID";
+                            if (searchLayer.resourceInfo && searchLayer.resourceInfo.objectIdField) {
+                                this.objectIdField = searchLayer.resourceInfo.objectIdField;
+                            } else if (searchLayer.layerObject && searchLayer.layerObject.objectIdField) {
+                                this.objectIdField = searchLayer.layerObject.objectIdField;
+                            }
+                            this.publishPointsOnly = (typeof this.publishPointsOnly === "boolean") ?
+                                    this.publishPointsOnly : true;
+
+                            this.searcher = new QueryTask(this.searchURL);
+
+                            // Set up the general layer query task: pattern match
+                            this.generalSearchParams = new Query();
+                            this.generalSearchParams.returnGeometry = false;
+                            this.generalSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
+
+                            generalOutFields = [this.objectIdField];
+                            if (this.displayField) {
+                                array.forEach(this.displayField, function (displayFieldName) {
+                                    generalOutFields = generalOutFields.concat(displayFieldName);
+                                });
+                            }
+                            this.generalSearchParams.outFields = generalOutFields.concat(this.searchFields);
+
+                            // Set up the specific layer query task: object id
+                            this.objectSearchParams = new Query();
+                            this.objectSearchParams.returnGeometry = true;
+                            this.objectSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
+                            this.objectSearchParams.outFields = ["*"];
+
+                            // Get the popup for this layer & save it with the layer
+                            opLayers = this.appConfig.itemInfo.itemData.operationalLayers;
+                            array.some(opLayers, function (layer) {
+                                if (layer.title === pThis.searchLayerName || layer.id === pThis.searchLayerName) {
+                                    pThis.layer = layer;
+                                    if (!layer.disablePopup && layer.popupInfo) {
+                                        pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
+                                    }
+                                    return true;
+                                }
+                                return false;
                             });
-                        } else {
-                            this.searchFields = [];
-                        }
 
-                        // Can we search for anything in this layer?
-                        if (actualFieldList.length === 0) {
-                            this.showSearchLayerFieldError(this.searchFields, this.searchLayerName, searchLayer);
-
-                            this.ready.reject(this);
+                            this.log("Search layer " + this.searchLayerName + " set up for queries");
+                            this.ready.resolve(this);
                             this.inherited(arguments);
                             return;
                         }
-
-                        // Does the layer contain the requested display field?
-                        if (this.displayField !== "" && availableFields.indexOf("," + this.displayField + ",") < 0) {
-                            // Requested display field not found
-                            this.showSearchLayerFieldError([this.displayField], this.searchLayerName, searchLayer);
-
-                            this.displayField = "";
-                        }
-
-                        // If there are searchable fields, replace the requested search fields list with
-                        // the available search fields list
-                        this.searchFields = actualFieldList;
-
-                        // Set up our query task now that we have the URL to the layer
-                        this.objectIdField = "ObjectID";
-                        if (searchLayer.resourceInfo && searchLayer.resourceInfo.objectIdField) {
-                            this.objectIdField = searchLayer.resourceInfo.objectIdField;
-                        } else if (searchLayer.layerObject && searchLayer.layerObject.objectIdField) {
-                            this.objectIdField = searchLayer.layerObject.objectIdField;
-                        }
-                        this.publishPointsOnly = (typeof this.publishPointsOnly === "boolean") ? this.publishPointsOnly : true;
-
-                        this.searcher = new QueryTask(this.searchURL);
-
-                        // Set up the general layer query task: pattern match
-                        this.generalSearchParams = new Query();
-                        this.generalSearchParams.returnGeometry = false;
-                        this.generalSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
-
-                        generalOutFields = [this.objectIdField];
-                        if (this.displayField !== "") {
-                            generalOutFields = generalOutFields.concat(this.displayField);
-                        }
-                        this.generalSearchParams.outFields = generalOutFields.concat(this.searchFields);
-
-                        // Set up the specific layer query task: object id
-                        this.objectSearchParams = new Query();
-                        this.objectSearchParams.returnGeometry = true;
-                        this.objectSearchParams.outSpatialReference = this.appConfig.map.spatialReference;
-                        this.objectSearchParams.outFields = ["*"];
-
-                        // Get the popup for this layer & save it with the layer
-                        opLayers = this.appConfig.itemInfo.itemData.operationalLayers;
-                        array.some(opLayers, function (layer) {
-                            if (layer.title === pThis.searchLayerName) {
-                                pThis.layer = layer;
-                                pThis.popupTemplate = new PopupTemplate(layer.popupInfo);
-                                return true;
-                            }
-                            return false;
-                        });
-
-                        this.log("Search layer " + this.searchLayerName + " set up for queries");
-                        this.ready.resolve(this);
-                        this.inherited(arguments);
-                        return;
                     }
                 } catch (error) {
                     reason = error.toString();
@@ -1693,7 +1725,8 @@ define("js/lgonlineCommand", [
             var isSearchable = false, searchLayer;
 
             searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && searchLayer.url && searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            if (searchLayer && searchLayer.url && (searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields))) {
                 isSearchable = true;
             }
 
@@ -1704,24 +1737,30 @@ define("js/lgonlineCommand", [
          * Reports layers that don't appear in the map.
          * @param {string} searchLayerName Name to report for search layer
          * @param {string} [reason] Error message; if omitted, "@messages.searchLayerMissing"
-         *        is used
+         *        is used if a searchLayerName is provided, "@messages.noSearchLayerConfigured"
+         *        otherwise
          * @memberOf js.LGSearchFeatureLayer#
          */
         showSearchLayerError: function (searchLayerName, reason) {
-            var message, searchLayer, pThis = this;
+            var message = "", searchLayer, pThis = this;
 
-            message = "\"" + (searchLayerName || "") + "\"<br>";
-            searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
-                // For a search layer with no available fields, just show its name and
-                // some guidance about what to do
-                message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
-
+            // Report the problematic layer (or lack thereof)
+            if (!searchLayerName) {
+                message += this.checkForSubstitution("@messages.noSearchLayerConfigured");
             } else {
-                if (!reason) {
-                    reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                message += "\"" + searchLayerName + "\"<br>";
+                searchLayer = this.mapObj.getLayer(searchLayerName);
+                if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
+                    // For a search layer with no available fields, just show its name and
+                    // some guidance about what to do
+                    message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
+
+                } else {
+                    if (!reason) {
+                        reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                    }
+                    message += reason;
                 }
-                message += reason;
             }
 
             // Add map layers to message
@@ -1742,13 +1781,15 @@ define("js/lgonlineCommand", [
          * @param {array} candidateFields List of fields requested for search or for display
          * @param {string} searchLayerName Name to report for search layer
          * @param {object} searchLayer Details of search layer as returned from map;
-         *        function uses searchLayer.resourceInfo.fields
+         *        function uses searchLayer.fields or searchLayer.resourceInfo.fields
          * @memberOf js.LGSearchFeatureLayer#
          */
         showSearchLayerFieldError: function (candidateFields, searchLayerName, searchLayer) {
-            var reason = "", message;
+            var fields, reason = "", message;
 
-            if (searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            fields = searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields);
+            if (fields) {
                 // List the requested fields
                 array.forEach(candidateFields, function (field) {
                     if (reason.length > 0) {
@@ -1768,7 +1809,7 @@ define("js/lgonlineCommand", [
                 // Add the search layer name and a list of available fields in that layer
                 message += "<br><hr>\"" + searchLayerName + "\"<br>";
                 message += this.checkForSubstitution("@prompts.layerFields") + "<br><ul>";
-                array.forEach(searchLayer.resourceInfo.fields, function (layerField) {
+                array.forEach(fields, function (layerField) {
                     message += "<li>\"" + layerField.name + "\"</li>";
                 });
                 message += "</ul>";
@@ -1802,10 +1843,10 @@ define("js/lgonlineCommand", [
             // Prepare the search term and the search query pattern for the desired casing handling
             if (this.caseInsensitiveSearch === true) {
                 processedSearchText = searchText.toUpperCase();
-                attributePattern = "UPPER(${0}) LIKE '" + this.searchPattern + "'";
+                attributePattern = "UPPER(${0}) LIKE " + this.unicodeIdentifier + "'" + this.searchPattern + "'";
             } else {
                 processedSearchText = searchText;
-                attributePattern = "${0} LIKE '" + this.searchPattern + "'";
+                attributePattern = "${0} LIKE " + this.unicodeIdentifier + "'" + this.searchPattern + "'";
             }
 
             // Escape single quotes, which are used to bound the search term in the query
@@ -1814,7 +1855,7 @@ define("js/lgonlineCommand", [
             // Replace the search term into the search query for each field to be searched
             array.forEach(this.searchFields, function (searchField) {
                 searchParam = searchParam + attributeSeparator
-                    + dojo.string.substitute(attributePattern, [searchField, processedSearchText]);
+                    + string.substitute(attributePattern, [searchField, processedSearchText]);
                 attributeSeparator = attributeSeparatorReset;
             });
 
@@ -1845,8 +1886,15 @@ define("js/lgonlineCommand", [
 
                     // Use the display field for representing the results if possible
                     representativeLabel = "";
-                    if (item.attributes[pThis.displayField]) {
-                        representativeLabel = item.attributes[pThis.displayField].toString();
+                    if (pThis.displayField && pThis.displayField.length > 0) {
+                        array.forEach(pThis.displayField, function (displayFieldName) {
+                            if (representativeLabel.length > 0) {
+                                representativeLabel += pThis.fieldSeparatorChar();
+                            }
+                            if (item.attributes[displayFieldName]) {
+                                representativeLabel += item.attributes[displayFieldName].toString();
+                            }
+                        });
                     } else {
                         // Test each non-null search field result and pick the first one
                         // that contains the search string as our label
@@ -1866,7 +1914,8 @@ define("js/lgonlineCommand", [
                         representativeLabel = "result";
                     }
 
-                    // Create the entry for this result
+                    // Create the entry for this result; use pThis.fieldSeparatorChar
+                    // to separate fields
                     resultsList.push({
                         "label": representativeLabel,
                         "data": item.attributes[pThis.objectIdField]
@@ -1941,7 +1990,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchMultiplexer", js.LGSearch, {
+    declare("js.LGSearchMultiplexer", js.LGSearch, {
         /**
          * Constructs an LGSearchMultiplexer.
          *
@@ -2103,7 +2152,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchFeatureLayerMultiplexer", [js.LGSearchMultiplexer, js.LGMapDependency], {
+    declare("js.LGSearchFeatureLayerMultiplexer", [js.LGSearchMultiplexer, js.LGMapDependency], {
         /**
          * Constructs an LGSearchFeatureLayerMultiplexer.
          *
@@ -2113,7 +2162,8 @@ define("js/lgonlineCommand", [
          * @extends js.LGSearchMultiplexer, js.LGMapDependency
          * @classdesc
          * Provides a searcher that multiplexes the work of LGSearchFeatureLayer searchers,
-         * selecting them by feature layer name
+         * selecting them from a comma-separated list of feature layer names, search field
+         * names, and display field names
          */
         constructor: function () {
             this.setUpWaitForDependency("js.LGSearchFeatureLayerMultiplexer");
@@ -2126,20 +2176,82 @@ define("js/lgonlineCommand", [
          * @override
          */
         createSearchersList: function () {
-            var deferralWaitList = [], featureLayerNames = [],
+            var pThis = this, deferralWaitList = [], featureLayerNames = [], featureSearchFields = [],
                 featureDisplayFields = [], i, searcherName, searcher;
             this.searchers = [];
 
-            // Get the list of layers & the list of display fields
-            if (this.searchLayerName) {
-                featureLayerNames = this.searchLayerName.split(",");
+            // Get the list of layers and fields to search. this.searchLayersString is a
+            // string of JSON that provides a structure with both, e.g.,
+            //     [{
+            //         "id": "Watershed173811_8687.0",
+            //         "fields": ["gnis_name", "reachcode"],
+            //         "type": "FeatureLayer"
+            //     }, {
+            //         "id": "Watershed173811_8687.1",
+            //         "fields": ["gnis_name"],
+            //         "type": "FeatureLayer"
+            //     }]
+            // An alternative specification uses the fields from the earlier version--
+            // this.searchLayerName and this.searchFields--to provide backwards
+            // compatibility. In this section, we normalize the parameters that we have to
+            // a this.searchLayers structure.
+            this.searchLayers = [];
+            if (this.searchLayersString) {
+                try {
+                    this.searchLayers = JSON.parse(this.searchLayersString);
+                } catch (ignore) {
+                }
+            } else if (this.searchLayerName && this.searchLayerName.length > 0) {
+                featureLayerNames = this.splitAndTrim(this.searchLayerName);
+                if (this.searchFields && this.searchFields.length > 0) {
+                    featureSearchFields = this.splitAndTrim(this.searchFields);
+                }
+                for (i = 0; i < featureLayerNames.length; i = i + 1) {
+                    this.searchLayers.push({
+                        "id": featureLayerNames[i],
+                        "fields": featureSearchFields,
+                        "type": "FeatureLayer"
+                    });
+                }
             }
-            if (this.displayFields) {
-                featureDisplayFields = this.displayFields.split(",");
+
+            // Get the desired fields to be used for the display. this.displayLayersString
+            // is defined the same way as this.searchLayersString. For backwards compatibility,
+            // we also support this.displayFields.
+            this.displayLayers = [];
+            if (this.displayLayersString) {
+                try {
+                    this.displayLayers = JSON.parse(this.displayLayersString);
+                } catch (ignore) {
+                }
+            } else if (this.displayFields && this.displayFields.length > 0) {
+                featureDisplayFields = this.splitAndTrim(this.displayFields);
+                for (i = 0; i < this.searchLayers.length; i = i + 1) {
+                    this.displayLayers.push({
+                        "id": this.searchLayers[i].id,
+                        "fields": featureDisplayFields[i] || "",
+                        "type": "FeatureLayer"
+                    });
+                }
+            }
+
+            // Define a function for matching a layer's display definition with its search definition;
+            // we put it here to get it out of the loop below
+            function findCorrespondingSearchLayer(displayLayerStruct) {
+                if (pThis.searchLayers[i].id === displayLayerStruct.id) {
+                    featureDisplayFields = displayLayerStruct.fields;
+                    return true;
+                }
+                return false;
             }
 
             // Construct the searchers and build a list of their ready state deferrals
-            for (i = 0; i < featureLayerNames.length; i = i + 1) {
+            for (i = 0; i < this.searchLayers.length; i = i + 1) {
+                // Get the display fields for this layer
+                featureDisplayFields = [];
+                array.some(this.displayLayers, findCorrespondingSearchLayer);
+
+                // Create the layer
                 searcherName = this.rootId + "_" + this.searchers.length;
                 searcher = new js.LGSearchFeatureLayer({
                     appConfig: this.appConfig,
@@ -2150,15 +2262,31 @@ define("js/lgonlineCommand", [
                     publishPointsOnly: this.publishPointsOnly,
                     searchPattern: this.searchPattern,
                     caseInsensitiveSearch: this.caseInsensitiveSearch,
-                    searchLayerName: featureLayerNames[i].trim(),
-                    searchFields: this.searchFields,
-                    displayField: featureDisplayFields[i]
+                    unicodeIdentifier: this.unicodeIdentifier,
+                    searchLayerName: this.searchLayers[i].id,
+                    searchFields: this.searchLayers[i].fields,
+                    displayField: featureDisplayFields
                 });
                 this.searchers.push(searcher);
                 deferralWaitList.push(searcher.ready);
             }
 
             return deferralWaitList;
+        },
+
+        /**
+         * Converts a comma-separated set of items into an array, trimming each.
+         * @param {string} commaSeparatedContent String of items to split
+         * @return {array} List of items
+         * @memberOf js.LGSearchFeatureLayerMultiplexer#
+         */
+        splitAndTrim: function (commaSeparatedContent) {
+            var splitArray, outArray = [];
+            splitArray = commaSeparatedContent.split(",");
+            array.forEach(splitArray, function (item) {
+                outArray.push(item.trim());
+            });
+            return outArray;
         },
 
         /**
@@ -2184,7 +2312,8 @@ define("js/lgonlineCommand", [
             var isSearchable = false, searchLayer;
 
             searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && searchLayer.url && searchLayer.resourceInfo && searchLayer.resourceInfo.fields) {
+            if (searchLayer && searchLayer.url && (searchLayer.fields ||
+                (searchLayer.resourceInfo && searchLayer.resourceInfo.fields))) {
                 isSearchable = true;
             }
 
@@ -2195,24 +2324,30 @@ define("js/lgonlineCommand", [
          * Reports layers that don't appear in the map.
          * @param {string} searchLayerName Name to report for search layer
          * @param {string} [reason] Error message; if omitted, "@messages.searchLayerMissing"
-         *        is used
+         *        is used if a searchLayerName is provided, "@messages.noSearchLayerConfigured"
+         *        otherwise
          * @memberOf js.LGSearchFeatureLayerMultiplexer#
          */
         showSearchLayerError: function (searchLayerName, reason) {
-            var message, searchLayer, pThis = this;
+            var message = "", searchLayer, pThis = this;
 
-            message = "\"" + (searchLayerName || "") + "\"<br>";
-            searchLayer = this.mapObj.getLayer(searchLayerName);
-            if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
-                // For a search layer with no available fields, just show its name and
-                // some guidance about what to do
-                message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
-
+            // Report the problematic layer (or lack thereof)
+            if (!searchLayerName) {
+                message += this.checkForSubstitution("@messages.noSearchLayerConfigured");
             } else {
-                if (!reason) {
-                    reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                message += "\"" + searchLayerName + "\"<br>";
+                searchLayer = this.mapObj.getLayer(searchLayerName);
+                if (searchLayer && !this.isSearchableLayer(searchLayerName)) {
+                    // For a search layer with no available fields, just show its name and
+                    // some guidance about what to do
+                    message += this.checkForSubstitution("@messages.searchLayerNotSearchable");
+
+                } else {
+                    if (!reason) {
+                        reason = this.checkForSubstitution("@messages.searchLayerMissing");
+                    }
+                    message += reason;
                 }
-                message += reason;
             }
 
             // Add map layers to message
@@ -2231,7 +2366,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGSearchBoxByText", js.LGDropdownBox, {
+    declare("js.LGSearchBoxByText", js.LGDropdownBox, {
         /**
          * Constructs an LGSearchBoxByText.
          *
@@ -2245,11 +2380,10 @@ define("js/lgonlineCommand", [
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, resultsListBox, table, tableBody,
-                searcher, lastSearchString, lastSearchTime, stagedSearch;
+            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
 
+            // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
-
             domConstruct.create("label",
                 {"for": textBoxId, innerHTML: this.checkForSubstitution(this.showPrompt)}, this.rootId);
             this.searchEntryTextBox = new TextBox({
@@ -2261,25 +2395,33 @@ define("js/lgonlineCommand", [
             }).placeAt(this.rootId);
             domStyle.set(this.searchEntryTextBox.domNode, "width", "99%");
 
-            resultsListBox = domConstruct.create("div",
-                {className: this.resultsListBoxClass}, this.rootId);
-            table = domConstruct.create("table",
-                {className: this.resultsListTableClass}, resultsListBox);
-            tableBody = domConstruct.create("tbody",
-                {className: this.resultsListBodyClass}, table);
-            touchScroll(resultsListBox);
-
+            // Prepare the searcher
             searcher = this.lgById(this.searcher);
             lastSearchString = "";
             lastSearchTime = 0;
             stagedSearch = null;
+
+            // There are alternate display options for the results list:
+            //   1. list of results, with multiple lines and a horizontal rule used if
+            //      each result displays more than one field (default or "multiline")
+            //   2. single-line list of results, with " / " separating the fields in each
+            //      result if that result displays more than one field ("single-line")
+            // Assign the appropriate methods to support the desired display type.
+            switch (this.displayResultsAs) {
+            case "single-line":
+                this.displayResults = new js.LGSearchResultsDisplaySingleline(this);
+                break;
+            default:
+                this.displayResults = new js.LGSearchResultsDisplayMultiline(this);
+                break;
+            }
 
             // Run a search when the entry text changes
             on(this.searchEntryTextBox, "change", function () {
                 var searchText = pThis.searchEntryTextBox.get("value");
                 if (lastSearchString !== searchText) {
                     lastSearchString = searchText;
-                    domConstruct.empty(tableBody);
+                    pThis.displayResults.clearResultsBox();
 
                     // Clear any staged search
                     clearTimeout(stagedSearch);
@@ -2288,12 +2430,10 @@ define("js/lgonlineCommand", [
                         // Stage a new search, which will launch if no new searches show up
                         // before the timeout
                         stagedSearch = setTimeout(function () {
-                            var searchingPlaceholder, thisSearchTime, now;
+                            var thisSearchTime, now;
 
-                            searchingPlaceholder = domConstruct.create("tr", null, tableBody);
-                            domConstruct.create("td",
-                                {className: pThis.resultsListSearchingClass}, searchingPlaceholder);
-
+                            // Launch a search after recording when the search began
+                            pThis.displayResults.showSearchingBusy();
                             thisSearchTime = lastSearchTime = (new Date()).getTime();
                             searcher.search(searchText, function (results) {
                                 var resultsList;
@@ -2304,7 +2444,7 @@ define("js/lgonlineCommand", [
                                 }
 
                                 // Show results
-                                domConstruct.empty(tableBody);  // to get rid of searching indicator
+                                pThis.displayResults.hideSearchingBusy();
                                 resultsList = searcher.toList(results, searchText);
 
                                 now = (new Date()).getTime();
@@ -2312,25 +2452,14 @@ define("js/lgonlineCommand", [
                                     + (now - thisSearchTime) / 1000 + " secs");
 
                                 if (resultsList.length > 0) {
-                                    array.forEach(resultsList, function (item) {
-                                        var tableRow, tableCell;
-
-                                        tableRow = domConstruct.create("tr",
-                                            null, tableBody);
-                                        tableCell = domConstruct.create("td",
-                                            {className: pThis.resultsListEntryClass, innerHTML: item.label}, tableRow);
-                                        pThis.applyTheme(true, tableCell);
-                                        on(tableCell, "click", function () {
-                                            searcher.publish(pThis.publish, item.data);
-                                        });
-                                    });
+                                    pThis.displayResults.showResults(searcher, resultsList);
                                 }
                             }, function (error) {
                                 // Query failure
-                                pThis.log("LGSearchBoxByText_1: " + error.message);
+                                pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
 
                                 lastSearchString = "";  // so that we can quickly repeat this search
-                                domConstruct.empty(tableBody);  // to get rid of searching indicator
+                                pThis.displayResults.hideSearchingBusy();
                             });
                         }, 1000);
                     }
@@ -2341,7 +2470,7 @@ define("js/lgonlineCommand", [
         /**
          * Toggles the graphic's visibility
          * @memberOf js.LGSearchBoxByText#
-        * @override
+         * @override
          */
         toggleVisibility: function () {
             this.inherited(arguments);
@@ -2353,7 +2482,240 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGShare", js.LGObject, {
+    declare("js.LGSearchResultsDisplay", null, {
+        /**
+         * Constructs an LGSearchResultsDisplay.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplay
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText.
+         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
+         */
+        constructor: function (searchUI) {
+            this.searchUI = searchUI;
+        },
+
+        /**
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        clearResultsBox: function () {
+            return;
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        showSearchingBusy: function () {
+            return;
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        hideSearchingBusy: function () {
+            return;
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchResultsDisplay#
+         */
+        showResults: function (searcher, resultsList) {
+            return;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplayTable", js.LGSearchResultsDisplay, {
+        /**
+         * Constructs an LGSearchResultsDisplayTable.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplayTable
+         * @extends js.LGSearchResultsDisplay
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table.
+         * @param {object} searchUI the js.LGSearchBoxByText that this object works with
+         */
+        constructor: function (searchUI) {
+            var resultsListBox, table;
+
+            resultsListBox = domConstruct.create("div",
+                {className: this.searchUI.resultsListBoxClass}, this.searchUI.rootId);
+            table = domConstruct.create("table",
+                {className: this.searchUI.resultsListTableClass}, resultsListBox);
+            this.tableBody = domConstruct.create("tbody",
+                {className: this.searchUI.resultsListBodyClass}, table);
+            touchScroll(resultsListBox);
+        },
+
+        /**
+         * Clears the area where the search results are shown.
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        clearResultsBox: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows that a search is active.
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        showSearchingBusy: function () {
+            var searchingPlaceholder = domConstruct.create("tr", null, this.tableBody);
+            domConstruct.create("td",
+                {className: this.searchUI.resultsListSearchingClass}, searchingPlaceholder);
+        },
+
+        /**
+         * Hides the active-search indication.
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        hideSearchingBusy: function () {
+            domConstruct.empty(this.tableBody);
+        },
+
+        /**
+         * Shows the results of a search.
+         * @param {object} searcher The searcher configured to work with this UI item
+         * @param {array} resultsList The list of search results after the searcher has
+         * processed them through its toList() function; array contains structures where
+         * label is tagged with "label" and data is tagged with "data"
+         * @memberOf js.LGSearchResultsDisplayTable#
+         * @override
+         */
+        showResults: function (searcher, resultsList) {
+            var pThis = this;
+
+            array.forEach(resultsList, function (item) {
+                var tableRow, tableCell;
+
+                // Create a row showing a result's label and with its data attached
+                // to a row-click handler
+                tableRow = domConstruct.create("tr",
+                    null, pThis.tableBody);
+                tableCell = domConstruct.create("td",
+                    {className: pThis.searchUI.resultsListEntryClass,
+                        innerHTML: pThis.formatItemLabel(item.label,
+                            searcher.fieldSeparatorChar())}, tableRow);
+                pThis.searchUI.applyTheme(true, tableCell);
+                on(tableCell, "click", function () {
+                    searcher.publish(pThis.searchUI.publish, item.data);
+                });
+            });
+        },
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayTable#
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            return;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplayMultiline", js.LGSearchResultsDisplayTable, {
+        /**
+         * Constructs an LGSearchResultsDisplayMultiline.
+         *
+         * @class
+         * @name js.LGSearchResultsDisplayMultiline
+         * @extends js.LGSearchResultsDisplayTable
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table, and for
+         * each result, displays one field per display line; if there's more than one
+         * field in a result, the list of fields is terminated by an HTML horizontal
+         * rule.
+         */
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayMultiline#
+         * @override
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            var i, formatted = "", parts = label.split(fieldSeparatorChar);
+            for (i = 0; i < parts.length; ++i) {
+                if (parts[i].length > 0) {
+                    if (formatted.length > 0) {
+                        formatted += "<br>";
+                    }
+                    formatted += parts[i];
+                }
+            }
+            if (parts.length > 1) {
+                formatted += "<hr>";
+            }
+            return formatted;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGSearchResultsDisplaySingleline", js.LGSearchResultsDisplayTable, {
+        /**
+         * Constructs an LGSearchResultsDisplaySingleline.
+         *
+         * @constructor
+         * @class
+         * @name js.LGSearchResultsDisplaySingleline
+         * @extends js.LGSearchResultsDisplayTable
+         * @classdesc
+         * Provides a UI display of a list of results. It is contained in and works
+         * with js.LGSearchBoxByText. The display is based on an HTML table, and for
+         * each result, if there's more than one field, the display separates the
+         * fields by a forward slash. The display wraps within the table row if its
+         * length exceeds the available space.
+         */
+
+        /**
+         * Formats the label of result.
+         * @param {string} label The text that is going to be displayed in the results
+         * @param {string} fieldSeparatorChar The character that separates the fields in the label
+         * @return {string} A string with the desired formatting for multiple fields
+         * @memberOf js.LGSearchResultsDisplayMultiline#
+         * @override
+         */
+        formatItemLabel: function (label, fieldSeparatorChar) {
+            var i, formatted = "", parts = label.split(fieldSeparatorChar);
+            for (i = 0; i < parts.length; ++i) {
+                if (i > 0) {
+                    formatted += " / ";
+                }
+                formatted += parts[i];
+            }
+            return formatted;
+        }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGShare", js.LGObject, {
         /**
          * Constructs an LGShare.
          *
@@ -2459,7 +2821,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGShareAppExtents", [js.LGShare, js.LGMapDependency], {
+    declare("js.LGShareAppExtents", [js.LGShare, js.LGMapDependency], {
         /**
          * LGShareAppExtents
          *
@@ -2496,8 +2858,42 @@ define("js/lgonlineCommand", [
          * @override
          */
         getUrlToShare: function () {
-            var baseUrl = this.getAppUrl();
+            var baseUrl = this.removeMapExtentsArg(this.getAppUrl());
             return baseUrl + (baseUrl.indexOf("?") < 0 ? "?" : "&") + this.getMapExtentsArg();
+        },
+
+        /**
+         * Strips the "ex" parameter out of a URL's parameters
+         * @param (string) url URL to modify
+         * @return {string} Updated URL
+         * @memberOf js.LGShareAppExtents
+         */
+        removeMapExtentsArg: function (url) {
+            var urlParts, params, iStart, iEnd;
+
+            // Separate base of URL from its parameters
+            urlParts = url.split("?", 2);
+            if (urlParts.length === 1) {
+                return url;
+            }
+
+            // Clean up the parameters
+            params = "&" + urlParts[1] + "&";
+            for (;;) {
+                iStart = params.indexOf("&ex=");
+                if (iStart < 0) {
+                    break;
+                }
+                iEnd = params.indexOf("&", iStart + 1);
+                params = params.substring(0, iStart) + params.substring(iEnd);
+            }
+
+            // Reassemble URL
+            url = urlParts[0];
+            if (params.length > 2) {
+                url += "?" + params.substring(1, params.length - 1);
+            }
+            return url;
         },
 
         /**
@@ -2513,7 +2909,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFilterLayers1", js.LGMapBasedMenuBox, {
+    declare("js.LGFilterLayers1", js.LGMapBasedMenuBox, {
         /**
          * Constructs an LGFilterLayers1.
          *
@@ -2565,10 +2961,12 @@ define("js/lgonlineCommand", [
                             for (field = 0; field < mapLayer.layerObject.fields.length; field += 1) {
                                 if (mapLayer.layerObject.fields[field].name === this.fieldname1) {
 
-                                    // Found a layer with the configured field; save the layer
+                                    // Found a layer with the configured field; save the layer and
+                                    // its existing definition expression, if any
                                     layerAndDefExpObject = {
                                         "layerObject": mapLayer.layerObject,
-                                        "fieldType": mapLayer.layerObject.fields[field].type
+                                        "fieldType": mapLayer.layerObject.fields[field].type,
+                                        "baseDefnExpr": mapLayer.layerObject.getDefinitionExpression() || ""
                                     };
                                     this.layers.push(layerAndDefExpObject);
 
@@ -2694,20 +3092,22 @@ define("js/lgonlineCommand", [
         */
         applyFilterCore: function () {
             array.forEach(this.layers, lang.hitch(this, function (layer) {
-                this.setLayerDefinitionExpression(layer.layerObject, layer.fieldType);
+                this.setLayerDefinitionExpression(layer.baseDefnExpr, layer.layerObject, layer.fieldType);
                 layer.layerObject.clearSelection();
             }));
         },
 
         /**
         * Filters the layer based on the definition expression
+        * @param {string} baseDefnExpr Baseline definition expression to maintain
         * @param {object} layer Layer to be filtered
         * @param {string|integer} fieldType Type of the floor field
         * @memberOf js.LGFilterLayers1#
         */
-        setLayerDefinitionExpression: function (layer, fieldType) {
-            var defExpression = layer.defaultDefinitionExpression;
+        setLayerDefinitionExpression: function (baseDefnExpr, layer, fieldType) {
+            var defExpression = "";
             try {
+                // Create the definition expression for the filter
                 if (this.value1 && this.value1 !== "") {
                     if (fieldType === "esriFieldTypeString") {
                         defExpression = string.substitute(this.defnExpression, {
@@ -2721,6 +3121,24 @@ define("js/lgonlineCommand", [
                         });
                     }
                 }
+
+                // Add in the baseline definition
+                if (baseDefnExpr.length > 0) {
+                    if (defExpression.length > 0) {
+                        defExpression += " AND ";
+                    }
+                    defExpression += baseDefnExpr;
+                }
+
+                // Add in the default definition expression
+                if (layer.defaultDefinitionExpression && layer.defaultDefinitionExpression.length > 0) {
+                    if (defExpression.length > 0) {
+                        defExpression += " AND ";
+                    }
+                    defExpression += layer.defaultDefinitionExpression;
+                }
+
+                // Set the definition in the layer
                 layer.setDefinitionExpression(defExpression);
             } catch (ignore) {
             }
@@ -2729,7 +3147,7 @@ define("js/lgonlineCommand", [
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGFilterLayers1WithDefaults", [js.LGFilterLayers1, js.LGDefaults], {
+    declare("js.LGFilterLayers1WithDefaults", [js.LGFilterLayers1, js.LGDefaults], {
         /**
          * Constructs an LGFilterLayers1WithDefaults.
          *

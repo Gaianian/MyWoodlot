@@ -16,18 +16,20 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define("js/lgonlineDijit", [
+define([
+    "dojo/_base/declare",
     "dojo/Deferred",
     "dojo/dom-construct",
     "js/lgonlineMap"
 ], function (
+    declare,
     Deferred,
     domConstruct
 ) {
 
     //========================================================================================================================//
 
-    dojo.declare("js.LGMapDijitContainer", [js.LGGraphic, js.LGMapDependency], {
+    declare("js.LGMapDijitContainer", [js.LGGraphic, js.LGMapDependency], {
         /**
          * Constructs an LGMapDijitContainer.
          * <br>Creates a map-dependent esri/dijit specified via a configuration parameter.
