@@ -2196,7 +2196,7 @@ define([
             // compatibility. In this section, we normalize the parameters that we have to
             // a this.searchLayers structure.
             this.searchLayers = [];
-            if (this.searchLayersString) {
+            if (this.searchLayersString !== "[]") {
                 try {
                     this.searchLayers = JSON.parse(this.searchLayersString);
                 } catch (ignore) {
