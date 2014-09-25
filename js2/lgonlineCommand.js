@@ -2219,7 +2219,7 @@ define([
             // is defined the same way as this.searchLayersString. For backwards compatibility,
             // we also support this.displayFields.
             this.displayLayers = [];
-            if (this.displayLayersString) {
+            if (this.displayLayersString !== "[]") {
                 try {
                     this.displayLayers = JSON.parse(this.displayLayersString);
                 } catch (ignore) {
