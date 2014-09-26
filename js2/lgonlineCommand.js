@@ -2196,7 +2196,7 @@ define([
             // compatibility. In this section, we normalize the parameters that we have to
             // a this.searchLayers structure.
             this.searchLayers = [];
-            if (this.searchLayersString !== "[]") {
+            if (this.searchLayersString !== "[]" && this.searchLayersString !== undefined) {
                 try {
                     this.searchLayers = JSON.parse(this.searchLayersString);
                 } catch (ignore) {
@@ -2219,7 +2219,7 @@ define([
             // is defined the same way as this.searchLayersString. For backwards compatibility,
             // we also support this.displayFields.
             this.displayLayers = [];
-            if (this.displayLayersString !== "[]") {
+            if (this.displayLayersString !== "[]" && this.displayLayersString !== undefined ) {
                 try {
                     this.displayLayers = JSON.parse(this.displayLayersString);
                 } catch (ignore) {
