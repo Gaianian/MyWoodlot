@@ -97,6 +97,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                                     this.config.appValues = templateResponse.itemData.values || {};
                                     lang.mixin(this.config.appValues, appResponse.itemData.values || {});
 
+                                    // If no webmap id was supplied in the URL or configured for the app, use the webmap in the file
+                                    if (!this.config.webmap) {
+                                        this.config.webmap = this.config.appValues.webmap;
+                                    }
+
                                     uiSource = "Using app specification in " + this.config.appid;
                                     waitForUI.resolve();
                                 } else {
@@ -118,7 +123,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                         filename = this.config.app;
 
                         // If we're running in the hosted environment without an appid, the file-based UIs are for previewing
-                        if (templateConfig.queryForCommonConfig) {
+                        if (templateConfig.queryForCommonConfig && !this.config.orgInfo.isPortal) {
                             filename += "_try_it";
                         }
 
@@ -136,7 +141,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
 
                             // If we're running in the hosted environment without an appid or if no webmap id was
                             // supplied in the URL, use the webmap in the file
-                            if (templateConfig.queryForCommonConfig || !this.config.webmap) {
+                            if ((templateConfig.queryForCommonConfig && !this.config.orgInfo.isPortal) || !this.config.webmap) {
                                 this.config.webmap = fileTemplate.values.webmap;
                             }
                             uiSource = "Using app specification in " + filename;
