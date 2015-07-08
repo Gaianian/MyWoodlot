@@ -3114,7 +3114,7 @@ define([
                             "fieldname1": this.fieldname1,
                             "value1": "'" + this.value1 + "'"
                         });
-                    } else if (fieldType === "esriFieldTypeInteger") {
+                    } else if (fieldType === "esriFieldTypeInteger" || fieldType === "esriFieldTypeSmallInteger") {
                         defExpression = string.substitute(this.defnExpression, {
                             "fieldname1": this.fieldname1,
                             "value1": this.value1

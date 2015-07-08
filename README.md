@@ -19,8 +19,8 @@
 [ArcGISServer]: http://www.esri.com/software/arcgis/arcgisserver
 
 [New to Github? Get started here.]: http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html
-[Finder help]: http://solutionsdev.arcgis.com/local-government/help/finder/
-[FEF help]: http://solutionsdev.arcgis.com/local-government/help/find-edit-filter/
+[Finder help]: http://solutions.arcgis.com/local-government/help/finder/
+[FEF help]: http://solutions.arcgis.com/local-government/help/find-edit-filter/
 [guidelines for contributing]: https://github.com/esri/contributing
 [LICENSE.txt]: LICENSE.txt
 
@@ -56,7 +56,9 @@ Preview the apps:
   - Portal Example where `arcgis` is the name of the Web Adaptor: `"sharinghost": location.protocol + "//" + "webadaptor.domain.com/arcgis"`
 4. If you are using Portal or a local install of the ArcGIS API for JavaScript, change all references to the ArcGIS API for JavaScript in index.html to refer to your local copy of the API. Search for the references containing `"//js.arcgis.com/3.13"` and replace this portion of the reference with the url to your local install.
   - For example: `"//webadaptor.domain.com/arcgis/jsapi/jsapi"` where `arcgis` is the name of your Web Adaptor.
-5. Copy an item ID from Portal/ArcGIS Online and replace the default ID in the application’s configuration file - either Finder.json or FindEditFilter.json in the apps2 folder. You can now run the application on your web server or configure the application further.
+5. Copy an item ID from Portal/ArcGIS Online and replace the default ID in the application’s configuration file - either Finder.json or FindEditFilter.json in the apps2 folder.
+6. Complete the configuration of the application using the help ([Finder][Finder help] or [Find, Edit, and Filter][FEF help]) as a reference.
+You can now run the application on your web server or configure the application further.
 
 > **Note:** If your application edits features in a feature service, contains secure services or web maps that aren't shared publicly, or generate requests that exceed 200 characters, you may need to set up and use a proxy page. Common situations where you may exceed the URL length are using complex polygons as input to a task or specifying a spatial reference using well-known text (WKT). For details on installing and configuring a proxy page see [Using the proxy](https://developers.arcgis.com/javascript/jshelp/ags_proxy.html). If you do not have an Internet connection, you will need to access and deploy the ArcGIS API for JavaScript documentation from [developers.arcgis.com](https://developers.arcgis.com/).
 
@@ -72,8 +74,8 @@ Preview the apps:
 * ArcGIS Online subscription or ArcGIS Portal
 
 ### Browser Compatibility
-* Finder is optimized for display on smartphones, desktops and tablet devices using [all browsers supported by ArcGIS Online][supported browsers]. 
-* Find, Edit, and Filter is optimized for display on desktops and tablet devices using [all browsers supported by ArcGIS Online][supported browsers]. 
+* Finder is optimized for display on smartphones, desktops and tablet devices using [all browsers supported by ArcGIS Online][supported browsers].
+* Find, Edit, and Filter is optimized for display on desktops and tablet devices using [all browsers supported by ArcGIS Online][supported browsers].
 
 ## Resources
 
@@ -84,7 +86,7 @@ Learn more about Esri's [ArcGIS for Local Government maps and apps][].
 
 Show me a list of other [Local Government GitHub repositories][].
 
-This application uses the 3.13 version of [Esri's ArcGIS API for JavaScript][]; see the site for concepts, samples, and a reference for using the API to create mapping web sites.
+This application uses the 3.14 version of [Esri's ArcGIS API for JavaScript][]; see the site for concepts, samples, and a reference for using the API to create mapping web sites.
 
 [Esri's ArcGIS Online Help][] site describes how to create web maps and web map applications in the ArcGIS Online ecosystem.
 
