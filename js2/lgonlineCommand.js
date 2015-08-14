@@ -2437,7 +2437,7 @@ define([
          * @memberOf js.LGSearchBoxByText#
          */
         launchSearch: function (searchText, autoJumpIfSolo) {
-            var pThis = this, searchText;
+            var pThis = this;
             autoJumpIfSolo = this.toBoolean(autoJumpIfSolo, false);
 
             if (pThis.lastSearchString !== searchText) {
@@ -2639,17 +2639,23 @@ define([
                         innerHTML: pThis.formatItemLabel(item.label,
                             searcher.fieldSeparatorChar())}, tableRow);
                 pThis.searchUI.applyTheme(true, tableCell);
-                on(tableCell, "click", lang.hitch(this, pThis.publishResultChoice, searcher, pThis.searchUI.publish, item.data));
+                on(tableCell, "click", lang.hitch(this, pThis.publishViaProvider, searcher, pThis.searchUI.publish, item.data));
             });
 
             // If desired and there's only one result, automatically select it
             if (autoJumpIfSolo && resultsList.length === 1) {
-                pThis.publishResultChoice(searcher, pThis.searchUI.publish, resultsList[0].data);
+                pThis.publishViaProvider(searcher, pThis.searchUI.publish, resultsList[0].data);
             }
         },
 
-        publishResultChoice: function (searcher, publishMessage, itemData) {
-            searcher.publish(publishMessage, itemData);
+        /**
+         * Publishes a message via a supplied provider.
+         * @param {object} provider Provider that will do the publishing
+         * @param {string} messageSubject Subject of message
+         * @param {object} messageData Data accompanying message
+         */
+        publishViaProvider: function (provider, messageSubject, messageData) {
+            provider.publish(messageSubject, messageData);
         },
 
         /**
