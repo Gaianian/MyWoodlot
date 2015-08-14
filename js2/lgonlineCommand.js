@@ -2425,18 +2425,21 @@ define([
 
             if (initialSearch.length > 0) {
                 this.setIsVisible(true);
-                this.launchSearch();
+                this.launchSearch(initialSearch, true);
             }
         },
 
         /**
          * Launches a search.
+         * @param {string} searchText String to search for
+         * @param {boolean} [autoJumpIfSolo] Indicates if app should automatically select
+         * a solo result
          * @memberOf js.LGSearchBoxByText#
          */
-        launchSearch: function () {
+        launchSearch: function (searchText, autoJumpIfSolo) {
             var pThis = this, searchText;
+            autoJumpIfSolo = this.toBoolean(autoJumpIfSolo, false);
 
-            searchText = pThis.searchEntryTextBox.get("value");
             if (pThis.lastSearchString !== searchText) {
                 pThis.lastSearchString = searchText;
                 pThis.displayResults.clearResultsBox();
@@ -2470,7 +2473,7 @@ define([
                                 + (now - thisSearchTime) / 1000 + " secs");
 
                             if (resultsList.length > 0) {
-                                pThis.displayResults.showResults(pThis.searcher, resultsList);
+                                pThis.displayResults.showResults(pThis.searcher, resultsList, autoJumpIfSolo);
                             }
                         }, function (error) {
                             // Query failure
@@ -2545,9 +2548,11 @@ define([
          * @param {array} resultsList The list of search results after the searcher has
          * processed them through its toList() function; array contains structures where
          * label is tagged with "label" and data is tagged with "data"
+         * @param {boolean} autoJumpIfSolo Indicates if app should automatically select
+         * a solo result
          * @memberOf js.LGSearchResultsDisplay#
          */
-        showResults: function (searcher, resultsList) {
+        showResults: function (searcher, resultsList, autoJumpIfSolo) {
             return;
         }
     });
@@ -2614,10 +2619,12 @@ define([
          * @param {array} resultsList The list of search results after the searcher has
          * processed them through its toList() function; array contains structures where
          * label is tagged with "label" and data is tagged with "data"
+         * @param {boolean} autoJumpIfSolo Indicates if app should automatically select
+         * a solo result
          * @memberOf js.LGSearchResultsDisplayTable#
          * @override
          */
-        showResults: function (searcher, resultsList) {
+        showResults: function (searcher, resultsList, autoJumpIfSolo) {
             var pThis = this;
 
             array.forEach(resultsList, function (item) {
@@ -2632,10 +2639,17 @@ define([
                         innerHTML: pThis.formatItemLabel(item.label,
                             searcher.fieldSeparatorChar())}, tableRow);
                 pThis.searchUI.applyTheme(true, tableCell);
-                on(tableCell, "click", function () {
-                    searcher.publish(pThis.searchUI.publish, item.data);
-                });
+                on(tableCell, "click", lang.hitch(this, pThis.publishResultChoice, searcher, pThis.searchUI.publish, item.data));
             });
+
+            // If desired and there's only one result, automatically select it
+            if (autoJumpIfSolo && resultsList.length === 1) {
+                pThis.publishResultChoice(searcher, pThis.searchUI.publish, resultsList[0].data);
+            }
+        },
+
+        publishResultChoice: function (searcher, publishMessage, itemData) {
+            searcher.publish(publishMessage, itemData);
         },
 
         /**
