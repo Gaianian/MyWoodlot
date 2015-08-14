@@ -2380,7 +2380,11 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
+            var textBoxId, initialSearch = "";
+
+            if (this.appConfig.find) {
+                initialSearch = this.appConfig.find;
+            }
 
             // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
@@ -2388,7 +2392,7 @@ define([
                 {"for": textBoxId, innerHTML: this.checkForSubstitution(this.showPrompt)}, this.rootId);
             this.searchEntryTextBox = new TextBox({
                 id: textBoxId,
-                value: "",
+                value: initialSearch,
                 trim: true,
                 placeHolder: this.hint,
                 intermediateChanges: true
@@ -2396,10 +2400,10 @@ define([
             domStyle.set(this.searchEntryTextBox.domNode, "width", "99%");
 
             // Prepare the searcher
-            searcher = this.lgById(this.searcher);
-            lastSearchString = "";
-            lastSearchTime = 0;
-            stagedSearch = null;
+            this.searcher = this.lgById(this.searcher);
+            this.lastSearchString = "";
+            this.lastSearchTime = 0;
+            this.stagedSearch = null;
 
             // There are alternate display options for the results list:
             //   1. list of results, with multiple lines and a horizontal rule used if
@@ -2417,54 +2421,67 @@ define([
             }
 
             // Run a search when the entry text changes
-            on(this.searchEntryTextBox, "change", function () {
-                var searchText = pThis.searchEntryTextBox.get("value");
-                if (lastSearchString !== searchText) {
-                    lastSearchString = searchText;
-                    pThis.displayResults.clearResultsBox();
+            on(this.searchEntryTextBox, "change", lang.hitch(this, this.launchSearch));
 
-                    // Clear any staged search
-                    clearTimeout(stagedSearch);
+            if (initialSearch.length > 0) {
+                this.setIsVisible(true);
+                this.launchSearch();
+            }
+        },
 
-                    if (searchText.length > 0) {
-                        // Stage a new search, which will launch if no new searches show up
-                        // before the timeout
-                        stagedSearch = setTimeout(function () {
-                            var thisSearchTime, now;
+        /**
+         * Launches a search.
+         * @memberOf js.LGSearchBoxByText#
+         */
+        launchSearch: function () {
+            var pThis = this, searchText;
 
-                            // Launch a search after recording when the search began
-                            pThis.displayResults.showSearchingBusy();
-                            thisSearchTime = lastSearchTime = (new Date()).getTime();
-                            searcher.search(searchText, function (results) {
-                                var resultsList;
+            searchText = pThis.searchEntryTextBox.get("value");
+            if (pThis.lastSearchString !== searchText) {
+                pThis.lastSearchString = searchText;
+                pThis.displayResults.clearResultsBox();
 
-                                // Discard searches made obsolete by new typing from user
-                                if (thisSearchTime < lastSearchTime) {
-                                    return;
-                                }
+                // Clear any staged search
+                clearTimeout(pThis.stagedSearch);
 
-                                // Show results
-                                pThis.displayResults.hideSearchingBusy();
-                                resultsList = searcher.toList(results, searchText);
+                if (searchText.length > 0) {
+                    // Stage a new search, which will launch if no new searches show up
+                    // before the timeout
+                    pThis.stagedSearch = setTimeout(function () {
+                        var thisSearchTime, now;
 
-                                now = (new Date()).getTime();
-                                pThis.log("retd " + resultsList.length + " items in "
-                                    + (now - thisSearchTime) / 1000 + " secs");
+                        // Launch a search after recording when the search began
+                        pThis.displayResults.showSearchingBusy();
+                        thisSearchTime = pThis.lastSearchTime = (new Date()).getTime();
+                        pThis.searcher.search(searchText, function (results) {
+                            var resultsList;
 
-                                if (resultsList.length > 0) {
-                                    pThis.displayResults.showResults(searcher, resultsList);
-                                }
-                            }, function (error) {
-                                // Query failure
-                                pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
+                            // Discard searches made obsolete by new typing from user
+                            if (thisSearchTime < pThis.lastSearchTime) {
+                                return;
+                            }
 
-                                lastSearchString = "";  // so that we can quickly repeat this search
-                                pThis.displayResults.hideSearchingBusy();
-                            });
-                        }, 1000);
-                    }
+                            // Show results
+                            pThis.displayResults.hideSearchingBusy();
+                            resultsList = pThis.searcher.toList(results, searchText);
+
+                            now = (new Date()).getTime();
+                            pThis.log("retd " + resultsList.length + " items in "
+                                + (now - thisSearchTime) / 1000 + " secs");
+
+                            if (resultsList.length > 0) {
+                                pThis.displayResults.showResults(pThis.searcher, resultsList);
+                            }
+                        }, function (error) {
+                            // Query failure
+                            pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
+
+                            pThis.lastSearchString = "";  // so that we can quickly repeat this search
+                            pThis.displayResults.hideSearchingBusy();
+                        });
+                    }, 1000);
                 }
-            });
+            }
         },
 
         /**
