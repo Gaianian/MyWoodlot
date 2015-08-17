@@ -2009,20 +2009,24 @@ define([
             deferralWaitList = this.createSearchersList();
 
             // We're ready once all of our searchers are ready
-            (new DeferredList(deferralWaitList)).then(
-                function (results) {
-                    // Did all succeed?
-                    var ok = array.every(results, function (result) {
-                        return result[0];
-                    });
+            if (deferralWaitList.length === 0) {
+                this.ready.reject(this);
+            } else {
+                (new DeferredList(deferralWaitList)).then(
+                    function (results) {
+                        // Did all succeed?
+                        var ok = array.every(results, function (result) {
+                            return result[0];
+                        });
 
-                    if (ok) {
-                        pThis.ready.resolve(pThis);
-                    } else {
-                        pThis.ready.reject(pThis);
+                        if (ok) {
+                            pThis.ready.resolve(pThis);
+                        } else {
+                            pThis.ready.reject(pThis);
+                        }
                     }
-                }
-            );
+                );
+            }
         },
 
         /**
@@ -2424,8 +2428,17 @@ define([
             on(this.searchEntryTextBox, "change", lang.hitch(this, this.launchSearch));
 
             if (initialSearch.length > 0) {
-                this.setIsVisible(true);
-                this.launchSearch(initialSearch, true);
+                if (this.searcher.ready === undefined) {
+                    this.setIsVisible(true);
+                    this.launchSearch(initialSearch, true);
+                } else {
+                    on(this.searcher.ready, lang.hitch(this, function () {
+                        if (this.searcher.ready.isResolved()) {
+                            this.setIsVisible(true);
+                            this.launchSearch(initialSearch, true);
+                        }
+                    }));
+                }
             }
         },
 
