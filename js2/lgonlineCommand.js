@@ -2009,20 +2009,24 @@ define([
             deferralWaitList = this.createSearchersList();
 
             // We're ready once all of our searchers are ready
-            (new DeferredList(deferralWaitList)).then(
-                function (results) {
-                    // Did all succeed?
-                    var ok = array.every(results, function (result) {
-                        return result[0];
-                    });
+            if (deferralWaitList.length === 0) {
+                this.ready.reject(this);
+            } else {
+                (new DeferredList(deferralWaitList)).then(
+                    function (results) {
+                        // Did all succeed?
+                        var ok = array.every(results, function (result) {
+                            return result[0];
+                        });
 
-                    if (ok) {
-                        pThis.ready.resolve(pThis);
-                    } else {
-                        pThis.ready.reject(pThis);
+                        if (ok) {
+                            pThis.ready.resolve(pThis);
+                        } else {
+                            pThis.ready.reject(pThis);
+                        }
                     }
-                }
-            );
+                );
+            }
         },
 
         /**
@@ -2380,7 +2384,11 @@ define([
          * the searching and results formatting for this display.
          */
         constructor: function () {
-            var pThis = this, textBoxId, searcher, lastSearchString, lastSearchTime, stagedSearch;
+            var textBoxId, initialSearch = "";
+
+            if (this.appConfig.find) {
+                initialSearch = this.appConfig.find;
+            }
 
             // Prepare the type-in field
             textBoxId = this.rootId + "_entry";
@@ -2388,7 +2396,7 @@ define([
                 {"for": textBoxId, innerHTML: this.checkForSubstitution(this.showPrompt)}, this.rootId);
             this.searchEntryTextBox = new TextBox({
                 id: textBoxId,
-                value: "",
+                value: initialSearch,
                 trim: true,
                 placeHolder: this.hint,
                 intermediateChanges: true
@@ -2396,10 +2404,10 @@ define([
             domStyle.set(this.searchEntryTextBox.domNode, "width", "99%");
 
             // Prepare the searcher
-            searcher = this.lgById(this.searcher);
-            lastSearchString = "";
-            lastSearchTime = 0;
-            stagedSearch = null;
+            this.searcher = this.lgById(this.searcher);
+            this.lastSearchString = "";
+            this.lastSearchTime = 0;
+            this.stagedSearch = null;
 
             // There are alternate display options for the results list:
             //   1. list of results, with multiple lines and a horizontal rule used if
@@ -2417,54 +2425,79 @@ define([
             }
 
             // Run a search when the entry text changes
-            on(this.searchEntryTextBox, "change", function () {
-                var searchText = pThis.searchEntryTextBox.get("value");
-                if (lastSearchString !== searchText) {
-                    lastSearchString = searchText;
-                    pThis.displayResults.clearResultsBox();
+            on(this.searchEntryTextBox, "change", lang.hitch(this, this.launchSearch));
 
-                    // Clear any staged search
-                    clearTimeout(stagedSearch);
-
-                    if (searchText.length > 0) {
-                        // Stage a new search, which will launch if no new searches show up
-                        // before the timeout
-                        stagedSearch = setTimeout(function () {
-                            var thisSearchTime, now;
-
-                            // Launch a search after recording when the search began
-                            pThis.displayResults.showSearchingBusy();
-                            thisSearchTime = lastSearchTime = (new Date()).getTime();
-                            searcher.search(searchText, function (results) {
-                                var resultsList;
-
-                                // Discard searches made obsolete by new typing from user
-                                if (thisSearchTime < lastSearchTime) {
-                                    return;
-                                }
-
-                                // Show results
-                                pThis.displayResults.hideSearchingBusy();
-                                resultsList = searcher.toList(results, searchText);
-
-                                now = (new Date()).getTime();
-                                pThis.log("retd " + resultsList.length + " items in "
-                                    + (now - thisSearchTime) / 1000 + " secs");
-
-                                if (resultsList.length > 0) {
-                                    pThis.displayResults.showResults(searcher, resultsList);
-                                }
-                            }, function (error) {
-                                // Query failure
-                                pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
-
-                                lastSearchString = "";  // so that we can quickly repeat this search
-                                pThis.displayResults.hideSearchingBusy();
-                            });
-                        }, 1000);
-                    }
+            if (initialSearch.length > 0) {
+                if (this.searcher.ready === undefined) {
+                    this.setIsVisible(true);
+                    this.launchSearch(initialSearch, true);
+                } else {
+                    on(this.searcher.ready, lang.hitch(this, function () {
+                        if (this.searcher.ready.isResolved()) {
+                            this.setIsVisible(true);
+                            this.launchSearch(initialSearch, true);
+                        }
+                    }));
                 }
-            });
+            }
+        },
+
+        /**
+         * Launches a search.
+         * @param {string} searchText String to search for
+         * @param {boolean} [autoJumpIfSolo] Indicates if app should automatically select
+         * a solo result
+         * @memberOf js.LGSearchBoxByText#
+         */
+        launchSearch: function (searchText, autoJumpIfSolo) {
+            var pThis = this;
+            autoJumpIfSolo = this.toBoolean(autoJumpIfSolo, false);
+
+            if (pThis.lastSearchString !== searchText) {
+                pThis.lastSearchString = searchText;
+                pThis.displayResults.clearResultsBox();
+
+                // Clear any staged search
+                clearTimeout(pThis.stagedSearch);
+
+                if (searchText.length > 0) {
+                    // Stage a new search, which will launch if no new searches show up
+                    // before the timeout
+                    pThis.stagedSearch = setTimeout(function () {
+                        var thisSearchTime, now;
+
+                        // Launch a search after recording when the search began
+                        pThis.displayResults.showSearchingBusy();
+                        thisSearchTime = pThis.lastSearchTime = (new Date()).getTime();
+                        pThis.searcher.search(searchText, function (results) {
+                            var resultsList;
+
+                            // Discard searches made obsolete by new typing from user
+                            if (thisSearchTime < pThis.lastSearchTime) {
+                                return;
+                            }
+
+                            // Show results
+                            pThis.displayResults.hideSearchingBusy();
+                            resultsList = pThis.searcher.toList(results, searchText);
+
+                            now = (new Date()).getTime();
+                            pThis.log("retd " + resultsList.length + " items in "
+                                + (now - thisSearchTime) / 1000 + " secs");
+
+                            if (resultsList.length > 0) {
+                                pThis.displayResults.showResults(pThis.searcher, resultsList, autoJumpIfSolo);
+                            }
+                        }, function (error) {
+                            // Query failure
+                            pThis.log("LGSearchBoxByText_1: " + (error.message || (error.details && error.details[0])));
+
+                            pThis.lastSearchString = "";  // so that we can quickly repeat this search
+                            pThis.displayResults.hideSearchingBusy();
+                        });
+                    }, 1000);
+                }
+            }
         },
 
         /**
@@ -2528,9 +2561,11 @@ define([
          * @param {array} resultsList The list of search results after the searcher has
          * processed them through its toList() function; array contains structures where
          * label is tagged with "label" and data is tagged with "data"
+         * @param {boolean} autoJumpIfSolo Indicates if app should automatically select
+         * a solo result
          * @memberOf js.LGSearchResultsDisplay#
          */
-        showResults: function (searcher, resultsList) {
+        showResults: function (searcher, resultsList, autoJumpIfSolo) {
             return;
         }
     });
@@ -2597,10 +2632,12 @@ define([
          * @param {array} resultsList The list of search results after the searcher has
          * processed them through its toList() function; array contains structures where
          * label is tagged with "label" and data is tagged with "data"
+         * @param {boolean} autoJumpIfSolo Indicates if app should automatically select
+         * a solo result
          * @memberOf js.LGSearchResultsDisplayTable#
          * @override
          */
-        showResults: function (searcher, resultsList) {
+        showResults: function (searcher, resultsList, autoJumpIfSolo) {
             var pThis = this;
 
             array.forEach(resultsList, function (item) {
@@ -2615,10 +2652,23 @@ define([
                         innerHTML: pThis.formatItemLabel(item.label,
                             searcher.fieldSeparatorChar())}, tableRow);
                 pThis.searchUI.applyTheme(true, tableCell);
-                on(tableCell, "click", function () {
-                    searcher.publish(pThis.searchUI.publish, item.data);
-                });
+                on(tableCell, "click", lang.hitch(this, pThis.publishViaProvider, searcher, pThis.searchUI.publish, item.data));
             });
+
+            // If desired and there's only one result, automatically select it
+            if (autoJumpIfSolo && resultsList.length === 1) {
+                pThis.publishViaProvider(searcher, pThis.searchUI.publish, resultsList[0].data);
+            }
+        },
+
+        /**
+         * Publishes a message via a supplied provider.
+         * @param {object} provider Provider that will do the publishing
+         * @param {string} messageSubject Subject of message
+         * @param {object} messageData Data accompanying message
+         */
+        publishViaProvider: function (provider, messageSubject, messageData) {
+            provider.publish(messageSubject, messageData);
         },
 
         /**
