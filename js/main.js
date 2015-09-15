@@ -16,10 +16,23 @@
  | limitations under the License.
  */
 //============================================================================================================================//
-define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom", "dojo/dom-class", "dojo/on",
-    "application/templateOptions", "dojo/Deferred", "dojo/request/xhr", "dojo/_base/array",
-    "dojo/_base/fx", "dojo/topic", "esri/lang", "dojo/i18n!esri/nls/jsapi",
-    "dojo/domReady!"], function (
+define([
+    "dojo/_base/declare",
+    "dojo/_base/lang",
+    "esri/arcgis/utils",
+    "dojo/dom",
+    "dojo/dom-class",
+    "dojo/on",
+    "config/templateConfig",
+    "dojo/Deferred",
+    "dojo/request/xhr",
+    "dojo/_base/array",
+    "dojo/_base/fx",
+    "dojo/topic",
+    "esri/lang",
+    "dojo/i18n!esri/nls/jsapi",
+    "dojo/domReady!"
+], function (
     declare,
     lang,
     arcgisUtils,
@@ -37,7 +50,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
 ) {
     return declare(null, {
         config: {},
-        startup: function (config, appResponse) {
+        startup: function (config) {
             var filename, waitForUI = new Deferred(), uiSource = "none";
 
             // config will contain application and user defined info for the template such as i18n strings, the web map id
@@ -81,21 +94,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                 //    apps2/GeneralMap
                 //
                 // Case #1 (appid)
-                if (esriLang.isDefined(this.config.appid) && esriLang.isDefined(appResponse)) {
-                    if (appResponse.itemData && appResponse.itemData.source) {
+                if (esriLang.isDefined(this.config.appid) && esriLang.isDefined(config.appResponse)) {
+                    if (config.appResponse.itemData && config.appResponse.itemData.source) {
                         // The webmap associated with the appid is the one that we want, not the one in
                         // the URL as selected in the template.js
-                        if (appResponse.itemData.values && appResponse.itemData.values.webmap !== "") {
-                            this.config.webmap = appResponse.itemData.values.webmap;
+                        if (config.appResponse.itemData.values && config.appResponse.itemData.values.webmap !== "") {
+                            this.config.webmap = config.appResponse.itemData.values.webmap;
                         }
 
                         // Get application's AGOL-based template
-                        arcgisUtils.getItem(appResponse.itemData.source).then(
+                        arcgisUtils.getItem(config.appResponse.itemData.source).then(
                             lang.hitch(this, function (templateResponse) {
                                 if (templateResponse.item && templateResponse.itemData && templateResponse.itemData.values) {
                                     this.config.ui = templateResponse.itemData.ui || {};
                                     this.config.appValues = templateResponse.itemData.values || {};
-                                    lang.mixin(this.config.appValues, appResponse.itemData.values || {});
+                                    lang.mixin(this.config.appValues, config.appResponse.itemData.values || {});
 
                                     // If no webmap id was supplied in the URL or configured for the app, use the webmap in the file
                                     if (!this.config.webmap) {
@@ -515,11 +528,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
 
         // create a map based on the input web map id
         _createWebMap: function (itemInfo) {
-            arcgisUtils.createMap(itemInfo, "mapDiv", {
-                mapOptions: {
-                    // Optionally define additional map config here for example you can
-                    // turn the slider off, display info windows, disable wraparound 180, slider position and more.
-                },
+            // set extent from config/url
+            itemInfo = this._setExtent(itemInfo);
+            // Optionally define additional map config here for example you can
+            // turn the slider off, display info windows, disable wraparound 180, slider position and more.
+            var mapOptions = {};
+            // set zoom level from config/url
+            mapOptions = this._setLevel(mapOptions);
+            // set map center from config/url
+            mapOptions = this._setCenter(mapOptions);
+            // create webmap from item
+            return arcgisUtils.createMap(itemInfo, "mapDiv", {
+                mapOptions: mapOptions,
+                usePopupManager: true,
+                layerMixins: this.config.layerMixins || [],
+                editable: this.config.editable,
                 bingMapsKey: this.config.bingKey
             }).then(lang.hitch(this, function (response) {
                 // Once the map is created we get access to the response which provides important info
@@ -543,6 +566,43 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                     }));
                 }
             }), this.reportError);
+        },
+
+        _setLevel: function (options) {
+            var level = this.config.level;
+            //specify center and zoom if provided as url params
+            if (level) {
+                options.zoom = level;
+            }
+            return options;
+        },
+
+        _setCenter: function (options) {
+            var points, center = this.config.center;
+            if (center) {
+                points = center.split(",");
+                if (points && points.length === 2) {
+                    options.center = [parseFloat(points[0]), parseFloat(points[1])];
+                }
+            }
+            return options;
+        },
+
+        _setExtent: function (info) {
+            var extArray, extLength, e = this.config.extent;
+            //If a custom extent is set as a url parameter handle that before creating the map
+            if (e) {
+                extArray = e.split(",");
+                extLength = extArray.length;
+                if (extLength === 4) {
+                    info.item.extent = [
+                        [parseFloat(extArray[0]), parseFloat(extArray[1])],
+                        [parseFloat(extArray[2]), parseFloat(extArray[3])]
+                    ];
+                }
+            }
+            return info;
         }
+
     });
 });
