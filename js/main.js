@@ -1,4 +1,4 @@
-﻿/*global define,dojo,esri,js,unescape,console,require,jsapi_i18n:true */
+﻿/*global define,dojo,esri,js,unescape,console,require */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,evil:true,regexp:true */
 /*
  | Copyright 2014 Esri
@@ -45,7 +45,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
             // any url parameters and any application specific configuration information.
             if (config) {
                 this.config = config;
-                jsapi_i18n = jsapiBundle;
                 this.config.SendToTest = this._checkTestpoint("SendToTest");
                 this.config.SaveToTest = this._checkTestpoint("SaveToTest");
 
