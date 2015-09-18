@@ -86,7 +86,7 @@
     <script src="js/lib/aop.min.js"></script>
     <script type="text/javascript">
         require([
-            "application/templateOptions",
+            "config/templateConfig",
             "application/template",
             "application/main"
         ], function(
@@ -103,7 +103,7 @@
                 // The config object contains the following properties: helper services, (optionally)
                 // i18n, appid, webmap and any custom values defined by the application.
                 require(["tests/addProbes"], function (addProbes) {
-                    myApp.startup(config, myTemplate.appResponse);
+                    myApp.startup(config);
                 });
             }, function(error) {
                 // Something went wrong. Let's report it.

@@ -78,7 +78,7 @@
     <script src="js2/libs.js"></script>
     <script type="text/javascript">
         require([
-            "application/templateOptions",
+            "config/templateConfig",
             "application/template",
             "application/main"
         ], function(
@@ -94,7 +94,7 @@
             myTemplate.startup().then(function(config) {
                 // The config object contains the following properties: helper services, (optionally)
                 // i18n, appid, webmap and any custom values defined by the application.
-                myApp.startup(config, myTemplate.appResponse);
+                myApp.startup(config);
             }, function(error) {
                 // Something went wrong. Let's report it.
                 myApp.reportError(error);
