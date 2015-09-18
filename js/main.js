@@ -84,7 +84,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                                         this.config.webmap = this.config.appValues.webmap;
                                     }
 
-                                    uiSource = "Using app specification in " + this.config.appid;
+                                    uiSource = this.config.appid;
                                     waitForUI.resolve();
                                 } else {
                                     waitForUI.reject(this._configurationError());
@@ -126,7 +126,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                             if ((templateConfig.queryForCommonConfig && !this.config.orgInfo.isPortal) || !this.config.webmap) {
                                 this.config.webmap = fileTemplate.values.webmap;
                             }
-                            uiSource = "Using app specification in " + filename;
+                            uiSource = filename;
                             waitForUI.resolve();
                         }),
                         lang.hitch(this, function () {
@@ -154,10 +154,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                     waitForWebmap.then(lang.hitch(this, function () {
                         // For creating the webmap, supply either the webmap id or, if available, the item info
                         var itemInfo = this.config.itemInfo || this.config.webmap;
-                        console.log(uiSource);
 
                         // Create the webmap
-                        this._createWebMap(itemInfo);
+                        this._createWebMap(itemInfo, uiSource);
                     }), lang.hitch(this, function (error) {
                         this.reportError(error || new Error("Error retrieving webmap."));
                     }));
@@ -427,9 +426,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                     });
 
                     // Build the UI
-                    array.forEach(this.config.ui, lang.hitch(this, function (component) {
-                        this._instantiateClass(component);
-                    }));
+                    this._buildUI(this.config.ui);
 
                     // Switch error flag to the one that the script will use and publish any accumulated errors
                     // as a single report using the script's error-handler mechanism, e.g., LGPublishEcho
@@ -457,8 +454,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
             );
         },
 
+        _buildUI: function (uiConfig) {
+            array.forEach(uiConfig, lang.hitch(this, this._instantiateClass));
+        },
+
         // create a map based on the input web map id
-        _createWebMap: function (itemInfo) {
+        _createWebMap: function (itemInfo, uiSource) {
+            console.log("Using app specification in " + uiSource);
             arcgisUtils.createMap(itemInfo, "mapDiv", {
                 mapOptions: {
                     // Optionally define additional map config here for example you can
