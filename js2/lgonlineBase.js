@@ -222,10 +222,6 @@ define([
                     if (this.appConfig.i18n) {
                         resolvedString = this.followAttributePath(this.appConfig.i18n, aString.substring(1));
                     }
-                } else if ("!" === leadChar) {
-                    if (window.jsapi_i18n) {
-                        resolvedString = this.followAttributePath(window.jsapi_i18n, aString.substring(1));
-                    }
                 } else if ("." === leadChar) {
                     resolvedString = this.followAttributePath(null, aString.substring(1));
                 }

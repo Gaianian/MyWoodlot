@@ -1,4 +1,4 @@
-﻿/*global define,dojo,esri,js,unescape,console,require,jsapi_i18n:true */
+﻿/*global define,dojo,esri,js,unescape,console,require */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,evil:true,regexp:true */
 /*
  | Copyright 2014 Esri
@@ -45,24 +45,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
             // any url parameters and any application specific configuration information.
             if (config) {
                 this.config = config;
-                jsapi_i18n = jsapiBundle;
-                this.config.SendToTest = this._checkTestpoint("SendToTest");
-                this.config.SaveToTest = this._checkTestpoint("SaveToTest");
-
-                // Testpoint #1: boilerplate configured
-                if (this.config.SendToTest) {
-                    window.external[this.config.SendToTest]("status 1. boilerplate configured");
-                    window.external[this.config.SendToTest]("json " + JSON.stringify(this.config, [
-                        "webmap", "appid", "group", "oauthappid", // template param items
-                        "proxyurl", "bingKey", "sharinghost", // defaults
-                        "appResponse", // response from appid query
-                        "app", "ex"  // templateOptions urlItems
-                    ]));
-                    window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.helperServices.printTask, ["url"]));
-                    window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.i18n, ["$locale", "direction"]));
-                    window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.i18n.map, ["error"]));
-                    window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.i18n.messages, ["unableToLaunchApp"]));
-                }
 
                 // Get the UI elements code
                 this.uiElementsReady = this._getUIElements();
@@ -102,7 +84,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                                         this.config.webmap = this.config.appValues.webmap;
                                     }
 
-                                    uiSource = "Using app specification in " + this.config.appid;
+                                    uiSource = this.config.appid;
                                     waitForUI.resolve();
                                 } else {
                                     waitForUI.reject(this._configurationError());
@@ -144,7 +126,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                             if ((templateConfig.queryForCommonConfig && !this.config.orgInfo.isPortal) || !this.config.webmap) {
                                 this.config.webmap = fileTemplate.values.webmap;
                             }
-                            uiSource = "Using app specification in " + filename;
+                            uiSource = filename;
                             waitForUI.resolve();
                         }),
                         lang.hitch(this, function () {
@@ -173,16 +155,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                         // For creating the webmap, supply either the webmap id or, if available, the item info
                         var itemInfo = this.config.itemInfo || this.config.webmap;
 
-                        console.log(uiSource);
-                        // Testpoint #2: UI selected; ready to create map
-                        if (this.config.SendToTest) {
-                            window.external[this.config.SendToTest]("status 2. UI and webmap retrieved; ready to create map; " + uiSource);
-                            window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.item, ["id", "owner", "title"]));
-                            window.external[this.config.SendToTest]("json " + JSON.stringify(itemInfo.itemData, ["applicationProperties"]));
-                        }
-
                         // Create the webmap
-                        this._createWebMap(itemInfo);
+                        this._createWebMap(itemInfo, uiSource);
                     }), lang.hitch(this, function (error) {
                         this.reportError(error || new Error("Error retrieving webmap."));
                     }));
@@ -246,19 +220,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                 }
             }
             return error;
-        },
-
-        // Checks for the presence of an ActiveX callback in a way that both works and passes JSLint
-        _checkTestpoint: function (testpointName) {
-            var ext, testpoint;
-            ext = typeof window.external;
-            if (ext !== "undefined") {
-                testpoint = typeof window.external[testpointName];
-                if (testpoint !== "undefined") {
-                    return testpointName;
-                }
-            }
-            return null;
         },
 
         // Get the UI elements
@@ -440,21 +401,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
             console.log("Application id " + (this.config.appid || "(none)"));
             console.log("Webmap id " + (this.config.webmap || "(none)"));
 
-            // Testpoint #3: map constructed
-            if (this.config.SendToTest) {
-                window.external[this.config.SendToTest]("status 3. map constructed");
-                window.external[this.config.SendToTest]("json " + JSON.stringify(this.config, ["appid", "webmap"]));
-            }
-
             // When the UI elements are ready, we can build the UI
             this.uiElementsReady.then(
                 lang.hitch(this, function (results) {
-                    // Testpoint #4: UI elements ready
-                    if (this.config.SendToTest) {
-                        window.external[this.config.SendToTest]("status 4. UI elements ready");
-                        window.external[this.config.SendToTest]("json " + JSON.stringify(this.config.appValues));
-                    }
-
                     this.config.appValues = this._organizeConfigValues(this.config.appValues);
 
                     // Add in some useful content from creating the map
@@ -477,9 +426,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
                     });
 
                     // Build the UI
-                    array.forEach(this.config.ui, lang.hitch(this, function (component) {
-                        this._instantiateClass(component);
-                    }));
+                    this._buildUI(this.config.ui);
 
                     // Switch error flag to the one that the script will use and publish any accumulated errors
                     // as a single report using the script's error-handler mechanism, e.g., LGPublishEcho
@@ -499,12 +446,6 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
 
                     console.log("Application is ready");
                     this._revealApp();
-
-                    // Testpoint #5: UI constructed
-                    if (this.config.SendToTest) {
-                        window.external[this.config.SendToTest]("status 5. UI constructed");
-                        window.external[this.config.SendToTest]("status ready");
-                    }
                 }),
                 lang.hitch(this, function (error) {
                     console.log(error ? error.message : this._launchError().message);
@@ -513,8 +454,13 @@ define(["dojo/_base/declare", "dojo/_base/lang", "esri/arcgis/utils", "dojo/dom"
             );
         },
 
+        _buildUI: function (uiConfig) {
+            array.forEach(uiConfig, lang.hitch(this, this._instantiateClass));
+        },
+
         // create a map based on the input web map id
-        _createWebMap: function (itemInfo) {
+        _createWebMap: function (itemInfo, uiSource) {
+            console.log("Using app specification in " + uiSource);
             arcgisUtils.createMap(itemInfo, "mapDiv", {
                 mapOptions: {
                     // Optionally define additional map config here for example you can
