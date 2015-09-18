@@ -18,8 +18,8 @@ define(['tests/tools', 'application/main'], function (tools, main) {
         target: main,
         method: "startup"
     }, function beforeStartupCommon(args) {
-        // args is an array containing function's args [config, appResponse]
-        tools.showStatus(0, args && args.length === 2, "startup args count");
+        // args is an array containing function's args [config]
+        tools.showStatus(0, args && args.length === 1, "startup args count");
 
         var config = args[0];
 

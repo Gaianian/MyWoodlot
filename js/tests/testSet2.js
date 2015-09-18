@@ -17,8 +17,8 @@ define(['tests/tools', 'tests/data', 'application/main'], function (tools, data,
         target: main,
         method: "startup"
     }, function beforeStartup(args) {
-        // args is an array containing function's args [config, appResponse]
-        var config = args[0], appResponse = args[1];
+        // args is an array containing function's args [config]
+        var config = args[0];
 
         tools.showStatus(1, config !== undefined, "startup config");
         tools.showStatus(1, config.app === "apps2/Finder", "startup app param");
@@ -26,7 +26,7 @@ define(['tests/tools', 'tests/data', 'application/main'], function (tools, data,
         tools.showStatus(1, config.webmap === "70430e570f0840b4a5eb8da09cfa82f1", "startup webmap param");
         tools.showStatus(1, config.ex === undefined, "startup ex param");
 
-        tools.showStatus(1, appResponse === undefined, "startup appResponse");
+        tools.showStatus(1, config.appResponse === undefined, "startup appResponse");
     });
 
     // Test point 2: ready to create map (_createWebMap)
