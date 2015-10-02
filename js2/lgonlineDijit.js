@@ -62,13 +62,16 @@ define([
          * @memberOf js.LGMapDijitContainer#
          */
         createDijit: function () {
-            var pThis = this;
+            var pThis = this, options;
+
+            // Create the options structure
+            options = this.options || {};
+            options.map = this.appConfig.map;
 
             // Bring in the dijit's AMD, and then construct the dijit
             require([this.dijitAmd], function (DijitConstructor) {
-                pThis.dijit = new DijitConstructor({
-                    map: pThis.appConfig.map
-                }, domConstruct.create("div", null, pThis.rootDiv)).startup();
+                pThis.dijit = new DijitConstructor(options, domConstruct.create("div", null, pThis.rootDiv));
+                pThis.dijit.startup();
 
                 pThis.ready.resolve(pThis);
             });
