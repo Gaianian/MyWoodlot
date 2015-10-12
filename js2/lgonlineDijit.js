@@ -20,11 +20,13 @@ define([
     "dojo/_base/declare",
     "dojo/Deferred",
     "dojo/dom-construct",
+    "js/SearchDijitHelper",
     "js/lgonlineMap"
 ], function (
     declare,
     Deferred,
-    domConstruct
+    domConstruct,
+    SearchDijitHelper
 ) {
 
     //========================================================================================================================//
@@ -39,7 +41,6 @@ define([
          * @name js.LGMapDijitContainer
          * @extends js.LGGraphic, js.LGMapDependency
          * @classdesc
-         * Manages the app's highlighter.
          */
         constructor: function () {
             this.ready = new Deferred();
@@ -62,17 +63,58 @@ define([
          * @memberOf js.LGMapDijitContainer#
          */
         createDijit: function () {
-            var pThis = this;
+            var pThis = this, options;
+
+            // Create the options structure
+            options = this.options || {};
+            options.map = this.appConfig.map;
 
             // Bring in the dijit's AMD, and then construct the dijit
             require([this.dijitAmd], function (DijitConstructor) {
-                pThis.dijit = new DijitConstructor({
-                    map: pThis.appConfig.map
-                }, domConstruct.create("div", null, pThis.rootDiv)).startup();
+                pThis.dijit = new DijitConstructor(options, domConstruct.create("div", null, pThis.rootDiv));
+                pThis.dijit.startup();
 
                 pThis.ready.resolve(pThis);
             });
         }
+    });
+
+    //========================================================================================================================//
+
+    declare("js.LGMapSearchDijitContainer", js.LGMapDijitContainer, {
+        /**
+         * Constructs an LGMapSearchDijitContainer.
+         * <br>Creates a map-dependent Search dijit.
+         *
+         * @constructor
+         * @class
+         * @name js.LGMapSearchDijitContainer
+         * @extends js.LGMapDijitContainer
+         * @classdesc
+         */
+        constructor: function () {
+            this.ready = new Deferred();
+
+            this.setUpWaitForDependency("js.LGMapSearchDijitContainer");
+        },
+
+        /**
+         * Creates the dijit.
+         * @memberOf js.LGMapSearchDijitContainer#
+         * @override
+         */
+        createDijit: function () {
+            // Add search control
+            SearchDijitHelper.createSearchDijit(
+                this,
+                this.appConfig.itemInfo.itemData.operationalLayers,
+                this.appConfig.helperServices.geocode,
+                domConstruct.create("div", null, this.rootDiv),
+                true
+            );
+            this.ready.resolve(this);
+        }
+
     });
 
     //========================================================================================================================//
