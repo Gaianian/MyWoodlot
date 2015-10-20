@@ -37,6 +37,7 @@ define([
     "esri/dijit/Legend",
     "esri/dijit/BasemapGallery",
     "esri/dijit/Basemap",
+    "esri/layers/ArcGISDynamicMapServiceLayer",
     "esri/tasks/locator",
     "esri/tasks/PrintTask",
     "esri/tasks/PrintParameters",
@@ -68,6 +69,7 @@ define([
     Legend,
     BasemapGallery,
     Basemap,
+    ArcGISDynamicMapServiceLayer,
     Locator,
     PrintTask,
     PrintParameters,
@@ -2972,6 +2974,7 @@ define([
          */
         constructor: function () {
             this.layers = [];
+            this.dynamicLayers = [];
             this.switchDelayTimer = null;
             if (this.busyIndicator) {
                 this.busyIndicator = this.lgById(this.busyIndicator);
@@ -2997,17 +3000,17 @@ define([
         * @override
         */
         onDependencyReady: function () {
-            var field1EntryTextBox;
+            var field1EntryTextBox, layerListReady = new Deferred();
 
             if (this.fieldname1) {
                 // Build a list of layers that contain the managed field.
                 // Loop through all the operation layers added to the map. If layer type is Feature layer, find if layer has
                 // the managed field.  If so, push the field type and layer object to an array of objects.
                 array.forEach(this.appConfig.itemInfo.itemData.operationalLayers, lang.hitch(this, function (mapLayer) {
-                    var field, layerAndDefExpObject;
+                    var field, layerAndDefExpObject, dynLayer;
 
-                    if (mapLayer.layerObject) {
-                        if (mapLayer.layerObject.type === "Feature Layer") {
+                    if (mapLayer.layerType === "ArcGISFeatureLayer") {
+                        if (mapLayer.layerObject && mapLayer.layerObject.type === "Feature Layer") {
                             for (field = 0; field < mapLayer.layerObject.fields.length; field += 1) {
                                 if (mapLayer.layerObject.fields[field].name === this.fieldname1) {
 
@@ -3024,6 +3027,17 @@ define([
                                 }
                             }
                         }
+                        layerListReady.resolve();
+
+                    // A dynamic layer doesn't have fields, so we'll save the layer itself in a list
+                    // a set the definition expression for the whole layer
+                    } else if (mapLayer.layerType === "ArcGISMapServiceLayer") {
+                        dynLayer = new ArcGISDynamicMapServiceLayer(mapLayer.url);
+                        this.appConfig.map.addLayers([dynLayer]);
+                        dynLayer.on("load", lang.hitch(this, function () {
+                            this.dynamicLayers.push(dynLayer);
+                            layerListReady.resolve();
+                        }));
                     }
                 }));
 
@@ -3052,15 +3066,17 @@ define([
                 }));
             }
 
-            // Do we have any layers with the filter field? If not, warn because no filtering will occur
-            if (this.layers.length === 0) {
-                this.setShowable(false);
-                this.showFieldError(this.fieldname1);
+            layerListReady.then(lang.hitch(this, function () {
+                // Do we have any layers with the filter field? If not, warn because no filtering will occur
+                if (this.layers.length === 0 && this.dynamicLayers.length === 0) {
+                    this.setShowable(false);
+                    this.showFieldError(this.fieldname1);
 
-            // Otherwise, set the initial definitions for the layers containing the managed field
-            } else {
-                this.applyFilter();
-            }
+                // Otherwise, set the initial definitions for the layers containing the managed field
+                } else {
+                    this.applyFilter();
+                }
+            }));
         },
 
         /**
@@ -3141,20 +3157,42 @@ define([
         * @memberOf js.LGFilterLayers1#
         */
         applyFilterCore: function () {
+            var defExpression;
+
+            // Feature layers
             array.forEach(this.layers, lang.hitch(this, function (layer) {
-                this.setLayerDefinitionExpression(layer.baseDefnExpr, layer.layerObject, layer.fieldType);
+                defExpression = this.createDefinitionExpression(layer.fieldType);
+                this.setLayerDefinitionExpression(defExpression, layer.baseDefnExpr, layer.layerObject);
                 layer.layerObject.clearSelection();
+            }));
+
+            // Dynamic layers
+            if (this.value1) {
+                defExpression = this.createDefinitionExpression("esriFieldTypeInteger");
+            }
+
+            array.forEach(this.dynamicLayers, lang.hitch(this, function (layer) {
+                var layerDefs = [];
+
+                // Set the definition expression for every layer in the dynamic layer since
+                // we don't know which ones are feature layers
+                // "Definition expressions for layers that are currently not visible will be ignored by the server."
+                // --https://developers.arcgis.com/javascript/jsapi/arcgisdynamicmapservicelayer-amd.html#setlayerdefinitions
+                array.forEach(layer.layerInfos, function (layerInfo) {
+                    layerDefs[layerInfo.id] = defExpression;
+                });
+                layer.setLayerDefinitions(layerDefs);
             }));
         },
 
         /**
-        * Filters the layer based on the definition expression
-        * @param {string} baseDefnExpr Baseline definition expression to maintain
-        * @param {object} layer Layer to be filtered
-        * @param {string|integer} fieldType Type of the floor field
-        * @memberOf js.LGFilterLayers1#
-        */
-        setLayerDefinitionExpression: function (baseDefnExpr, layer, fieldType) {
+         * Creates a definition expression
+         * @param {string} fieldType Type of the field: "esriFieldTypeString",
+         * "esriFieldTypeInteger", or "esriFieldTypeSmallInteger"
+         * @return {string} Definition expression
+         * @memberOf js.LGFilterLayers1#
+         */
+        createDefinitionExpression: function (fieldType) {
             var defExpression = "";
             try {
                 // Create the definition expression for the filter
@@ -3171,27 +3209,39 @@ define([
                         });
                     }
                 }
-
-                // Add in the baseline definition
-                if (baseDefnExpr.length > 0) {
-                    if (defExpression.length > 0) {
-                        defExpression += " AND ";
-                    }
-                    defExpression += baseDefnExpr;
-                }
-
-                // Add in the default definition expression
-                if (layer.defaultDefinitionExpression && layer.defaultDefinitionExpression.length > 0) {
-                    if (defExpression.length > 0) {
-                        defExpression += " AND ";
-                    }
-                    defExpression += layer.defaultDefinitionExpression;
-                }
-
-                // Set the definition in the layer
-                layer.setDefinitionExpression(defExpression);
             } catch (ignore) {
             }
+            return defExpression;
+        },
+
+        /**
+        * Filters the layer based on the definition expression
+        * @param {string} defExpression Definition expression
+        * @param {string} baseDefnExpr Baseline definition expression to maintain
+        * @param {object} layer Layer to be filtered
+        * @memberOf js.LGFilterLayers1#
+        */
+        setLayerDefinitionExpression: function (defExpression, baseDefnExpr, layer) {
+            var defExp = defExpression;
+
+            // Add in the baseline definition
+            if (baseDefnExpr.length > 0) {
+                if (defExp.length > 0) {
+                    defExp += " AND ";
+                }
+                defExp += baseDefnExpr;
+            }
+
+            // Add in the default definition expression
+            if (layer.defaultDefinitionExpression && layer.defaultDefinitionExpression.length > 0) {
+                if (defExp.length > 0) {
+                    defExp += " AND ";
+                }
+                defExp += layer.defaultDefinitionExpression;
+            }
+
+            // Set the definition in the layer
+            layer.setDefinitionExpression(defExp);
         }
     });
 
