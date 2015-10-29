@@ -568,10 +568,11 @@ define([
         /**
          * Disables popups.
          * @memberOf js.LGMap#
-         * @see From ArcGIS Online's Basic Viewer
-         * (http://arcgis4localgov2.maps.arcgis.com/home/item.html?id=f232cac140a8495f9990cc9d2bb66dd9)
          */
         disablePopups: function () {
+            // We don't want to see the map's info window
+            // https://developers.arcgis.com/javascript/jsapi/map-amd.html#setinfowindowonclick
+            this.appConfig.map.setInfoWindowOnClick(false);
             // Not usable until we've created the map
             if (this.appConfig.mapInfo.clickEventHandle) {
                 this.appConfig.mapInfo.clickEventHandle.remove();
