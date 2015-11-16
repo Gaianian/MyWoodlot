@@ -54,7 +54,7 @@ Preview the apps:
 3. Change the sharing host, found in defaults.js inside the config folder for the application, to the sharing URL for ArcGIS Online or Portal. For ArcGIS Online users, keep the default value of www.arcgis.com or specify the name of your organization.
   - ArcGIS Online Example:  `"sharinghost": location.protocol + "//" + “<your organization name>.maps.arcgis.com`
   - Portal Example where `arcgis` is the name of the Web Adaptor: `"sharinghost": location.protocol + "//" + "webadaptor.domain.com/arcgis"`
-4. If you are using Portal or a local install of the ArcGIS API for JavaScript, change all references to the ArcGIS API for JavaScript in index.html to refer to your local copy of the API. Search for the references containing `"//js.arcgis.com/3.13"` and replace this portion of the reference with the url to your local install.
+4. If you are using Portal or a local install of the ArcGIS API for JavaScript, change all references to the ArcGIS API for JavaScript in index.html to refer to your local copy of the API. Search for the references containing `"//js.arcgis.com/3.15"` and replace this portion of the reference with the url to your local install.
   - For example: `"//webadaptor.domain.com/arcgis/jsapi/jsapi"` where `arcgis` is the name of your Web Adaptor.
 5. Copy an item ID from Portal/ArcGIS Online and replace the default ID in the application’s configuration file - either Finder.json or FindEditFilter.json in the apps2 folder.
 6. Complete the configuration of the application using the help ([Finder][Finder help] or [Find, Edit, and Filter][FEF help]) as a reference.
@@ -86,7 +86,7 @@ Learn more about Esri's [ArcGIS for Local Government maps and apps][].
 
 Show me a list of other [Local Government GitHub repositories][].
 
-This application uses the 3.14 version of [Esri's ArcGIS API for JavaScript][]; see the site for concepts, samples, and a reference for using the API to create mapping web sites.
+This application uses the 3.15 version of [Esri's ArcGIS API for JavaScript][]; see the site for concepts, samples, and a reference for using the API to create mapping web sites.
 
 [Esri's ArcGIS Online Help][] site describes how to create web maps and web map applications in the ArcGIS Online ecosystem.
 
