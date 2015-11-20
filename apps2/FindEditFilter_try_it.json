@@ -39,10 +39,9 @@
                 "enableSuggestions": true,
                 "singleLineFieldName": "SingleLine",
                 "placeholder": "Find address or place",
-                "id": "dojoUnique41",
                 "enable": true
             }, {
-                "featureLayer": "flayerId": "FirstDuePreIncidentPlanning_8549",
+                "flayerId": "FirstDuePreIncidentPlanning_8549",
                 "url": null,
                 "name": "FirstDuePreIncidentPlanning - Complex Plans",
                 "id": "dojoUnique49",
@@ -53,7 +52,7 @@
                 "searchFields": ["COMPLEXID", "PLACENAME"],
                 "suggestionTemplate": "${COMPLEXID} ${PLACENAME} ${POCNAME} ${POCPHONE}"
             }, {
-                "featureLayer": "flayerId": "FirstDuePreIncidentPlanning_3963",
+                "flayerId": "FirstDuePreIncidentPlanning_3963",
                 "url": null,
                 "name": "FirstDuePreIncidentPlanning - Building Plans",
                 "id": "dojoUnique50",

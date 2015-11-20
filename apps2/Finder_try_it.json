@@ -26,36 +26,32 @@
         "colorizer.theme": "SeaBlues",
         "featureSearcher.searchLayers": {
             "sources": [{
-                    "locator": "{\"url\":\"https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer\",\"_url\":{\"path\":\"https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer\",\"query\":null},\"normalization\":true}",
-                    "url": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
-                    "northLat": "Ymax",
-                    "southLat": "Ymin",
-                    "eastLon": "Xmax",
-                    "westLon": "Xmin",
-                    "name": "Esri World Geocoder",
-                    "zoomScale": 10000,
-                    "enableSuggestions": true,
-                    "singleLineFieldName": "SingleLine",
-                    "placeholder": "Find address or place",
-                    "id": "dojoUnique9",
-                    "enable": true,
-                    "searchWithinMap": true
-                }, {
-                    "featureLayer": {
-                        "flayerId": "TaxParcelTIL_9803",
-                        "url": null,
-                        "name": "Tax Parcels",
-                        "id": "dojoUnique10",
-                        "enable": true,
-                        "enableSuggestions": true,
-                        "searchWithinMap": true,
-                        "placeholder": "Parcel ID",
-                        "searchFields": ["PARCELID"],
-                        "suggestionTemplate": "${SITEADDRESS}"
-                   }
-                }],
-                "activeSourceIndex": "all"
-            }
+                "locator": "{\"url\":\"https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer\",\"_url\":{\"path\":\"https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer\",\"query\":null},\"normalization\":true}",
+                "url": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+                "northLat": "Ymax",
+                "southLat": "Ymin",
+                "eastLon": "Xmax",
+                "westLon": "Xmin",
+                "name": "Esri World Geocoder",
+                "zoomScale": 10000,
+                "enableSuggestions": true,
+                "singleLineFieldName": "SingleLine",
+                "placeholder": "Find address or place",
+                "enable": true,
+                "searchWithinMap": true
+            }, {
+                "flayerId": "TaxParcelTIL_9803",
+                "url": null,
+                "name": "Tax Parcels",
+                "id": "dojoUnique10",
+                "enable": true,
+                "enableSuggestions": true,
+                "searchWithinMap": true,
+                "placeholder": "Parcel ID",
+                "searchFields": ["PARCELID"],
+                "suggestionTemplate": "${SITEADDRESS}"
+            }],
+            "activeSourceIndex": "all"
         },
         "highlighter.showFeaturePopup": true,
         "highlighter.highlightZoomLevel": 16,
