@@ -6,3 +6,5 @@ Author: MikeTschudi <mtschudi@esri.com>
 Date:   Fri Nov 20 12:26:35 2015 -0800
 
     Restored search dijit dropdown visibility under new root
+
+Created new commit to re-trigger gh-pages build
