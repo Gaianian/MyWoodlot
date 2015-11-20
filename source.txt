@@ -1,0 +1,8 @@
+Built on 11/20/2015 12:43:15.38 from
+repository local-government-online-apps
+branch new-search-widget
+commit d4848daf0b56eed60e1bb09f6a1ee14b546e0309
+Author: MikeTschudi <mtschudi@esri.com>
+Date:   Fri Nov 20 12:26:35 2015 -0800
+
+    Restored search dijit dropdown visibility under new root
