@@ -122,8 +122,9 @@ define([
 
                     // Expand the widget if it's always to be expanded
                     if (searchAlwaysExpanded) {
-                        styles.insertCssRule(".arcgisSearch .hasButtonMode.searchCollapsed .searchExpandContainer", "width:237px;");
-                        styles.insertCssRule(".arcgisSearch .hasButtonMode.searchCollapsed.hasMultipleSources .searchExpandContainer", "width:268px;");
+                        styles.insertCssRule(".arcgisSearch .hasButtonMode.searchCollapsed .searchExpandContainer", "width:237px");
+                        styles.insertCssRule(".arcgisSearch .hasButtonMode.searchCollapsed.hasMultipleSources .searchExpandContainer", "width:268px");
+                        styles.insertCssRule(".arcgisSearch .searchCollapsed .searchSubmit", "-webkit-border-top-left-radius:0px;-moz-border-top-left-radius:0px;-o-border-top-left-radius:0px;border-top-left-radius:0px;-webkit-border-bottom-left-radius:0px;-moz-border-bottom-left-radius:0px;-o-border-bottom-left-radius:0px;border-bottom-left-radius:0px");
                     }
                 }
             }
