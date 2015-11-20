@@ -106,11 +106,11 @@ define([
         createDijit: function () {
             // Add search control
             SearchDijitHelper.createSearchDijit(
-                this,
+                this.appConfig.map,
                 this.appConfig.itemInfo.itemData.operationalLayers,
-                this.appConfig.helperServices.geocode,
-                domConstruct.create("div", null, this.rootDiv),
-                true
+                this.appConfig.helperServices.geocode, this.appConfig.itemInfo.itemData.applicationProperties,
+                domConstruct.create("div", null, this.appConfig.map.container),
+                this.toBoolean(this.searchAlwaysExpanded, false)
             );
             this.ready.resolve(this);
         }
