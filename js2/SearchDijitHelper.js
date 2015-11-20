@@ -93,9 +93,9 @@ define([
             }
 
             // Create the dijit
-            numSources = searchSources.length + addLayersFromMap
+            numSources = searchSources.length + (addLayersFromMap
                 ? 1
-                : 0;
+                : 0);
 
             if (numSources > 0) {
                 if (numSources === 1) {
