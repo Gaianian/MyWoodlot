@@ -1,4 +1,4 @@
-﻿/*global define,dojo,esri,js,unescape,console,require */
+﻿/*global define,dojo,esri,js,unescape,console,require,jsapi_i18n:true */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,evil:true,regexp:true */
 /*
  | Copyright 2014 Esri
@@ -31,7 +31,7 @@ define([
     "dojo/topic",
     "esri/lang",
     "dojo/i18n!esri/nls/jsapi",
-    "dojo/domReady!"
+    "dojo/domReady"
 ], function (
     declare,
     lang,
@@ -58,6 +58,7 @@ define([
             // any url parameters and any application specific configuration information.
             if (config) {
                 this.config = config;
+                jsapi_i18n = jsapiBundle;
 
                 // Get the UI elements code
                 this.uiElementsReady = this._getUIElements();
@@ -118,7 +119,7 @@ define([
                         filename = this.config.app;
 
                         // If we're running in the hosted environment without an appid, the file-based UIs are for previewing
-                        if (templateConfig.queryForCommonConfig && !this.config.orgInfo.isPortal) {
+                        if (templateConfig.esriEnvironment && !this.config.orgInfo.isPortal) {
                             filename += "_try_it";
                         }
 
@@ -431,7 +432,6 @@ define([
 
                     // Add in some useful content from creating the map
                     this.config.map = this.map;
-                    this.config.mapInfo = this.mapInfo;
 
                     // Define the String.trim() method if missing (<= IE 8)
                     // By Pradeep Kumar Mishra
@@ -507,10 +507,6 @@ define([
                 // Here' we'll use it to update the application to match the specified color theme.
                 // console.log(this.config);
                 this.map = response.map;
-                this.mapInfo = {
-                    clickEventHandle: response.clickEventHandle,
-                    clickEventListener: response.clickEventListener
-                };
                 // make sure map is loaded
                 if (this.map.loaded) {
                     // do something with the map
