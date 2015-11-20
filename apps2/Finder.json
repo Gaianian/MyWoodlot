@@ -214,7 +214,7 @@
             "dependencyId": "map",
             "rootClass": "dijitContainer",
             "horizOffset": 19,
-            "vertOffset": 91,
+            "vertOffset": 151,
             "dijitAmd": "esri/dijit/HomeButton"
         }
     }, {
@@ -225,19 +225,20 @@
             "dependencyId": "map",
             "rootClass": "dijitContainer",
             "horizOffset": 19,
-            "vertOffset": 132,
+            "vertOffset": 201,
             "dijitAmd": "esri/dijit/LocateButton"
         }
     }, {
         "classname": "js.LGMapSearchDijitContainer",
-        "styles": ".arcgisSearch .searchCollapsed .searchSubmit,.arcgisSearch .searchToggle,.arcgisSearch .searchBtn{-webkit-border-radius:0px;-moz-border-radius:0px;-o-border-radius:0px;border-radius:0px}.arcgisSearch .searchBtn{padding:5px}.arcgisSearch .searchGroup .searchInput{padding:5px 24px 5px 12px}.arcgisSearch .hasButtonMode .searchExpandContainer{height:32px}.arcgisSearch .hasButtonMode.searchCollapsed .searchExpandContainer,.arcgisSearch .hasButtonMode.searchCollapsed.hasMultipleSources .searchExpandContainer{width: 0px;}.arcgisSearch .hasButtonMode.searchExpanded .searchExpandContainer,.arcgisSearch .hasButtonMode .searchAnimate{width: 237px;}.arcgisSearch .hasButtonMode.searchExpanded.hasMultipleSources .searchExpandContainer,.arcgisSearch .hasButtonMode.hasMultipleSources .searchAnimate{width: 268px;}.arcgisSearch .searchClear{top:1px}.dijitContainer{overflow:visible}",
+        "styles": ".arcgisSearch .searchBtn{padding:5px;}.arcgisSearch .searchGroup .searchInput{padding:5px 24px 5px 12px;}.arcgisSearch .hasButtonMode .searchExpandContainer{height:32px;}.arcgisSearch .hasButtonMode.searchExpanded .searchExpandContainer,.arcgisSearch .hasButtonMode .searchAnimate{width:237px;}.arcgisSearch .hasButtonMode.searchExpanded.hasMultipleSources .searchExpandContainer,.arcgisSearch .hasButtonMode.hasMultipleSources .searchAnimate{width:268px;}.arcgisSearch .searchClear{top:1px;}.esriSimpleSliderTL{left:20px;top:70px;}",
         "config": {
             "rootId": "featureSearcher",
             "parentDiv": "map",
             "dependencyId": "map",
             "rootClass": "dijitContainer",
-            "horizOffset": -20,
-            "vertOffset": 20
+            "horizOffset": 20,
+            "vertOffset": 20,
+            "searchAlwaysExpanded": true
         }
     }, {
         "classname": "js.LGGallery",

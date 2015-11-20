@@ -109,7 +109,7 @@ define([
                 this.appConfig.map,
                 this.appConfig.itemInfo.itemData.operationalLayers,
                 this.appConfig.helperServices.geocode, this.appConfig.itemInfo.itemData.applicationProperties,
-                domConstruct.create("div", null, this.appConfig.map.container),
+                domConstruct.create("div", null, this.rootDiv),
                 this.toBoolean(this.searchAlwaysExpanded, false)
             );
             this.ready.resolve(this);
