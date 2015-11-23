@@ -292,7 +292,7 @@
             "rootClass": "dijitContainer",
             "horizOffset": 20,
             "vertOffset": 20,
-            "searchAlwaysExpanded": false
+            "searchAlwaysExpanded": true
         }
     }, {
         "classname": "js.LGGallery",
