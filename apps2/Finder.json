@@ -1,4 +1,4 @@
-{
+﻿{
     "license": [
         " | Copyright 2012 Esri",
         " |",
@@ -150,9 +150,7 @@
     "ui": [{
         "classname": "js.LGNotes",
         "config": {
-            "notes": [
-                "@@@commit@@@"
-            ]
+            "notes": ["commit b9149fcab84916f6 2014-09-04 13:20:55 -0700"]
         }
     }, {
         "classname": "js.LGColorizer",
@@ -275,7 +273,8 @@
             "busyIndicator": "busyIndicator",
             "publishPointsOnly": false,
             "searchPattern": "%${1}%",
-            "caseInsensitiveSearch": true
+            "caseInsensitiveSearch": true,
+            "unicodeIdentifier": " "
         }
     }, {
         "classname": "js.LGLaunchUrl",
