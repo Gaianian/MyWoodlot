@@ -17,16 +17,24 @@
  */
 //============================================================================================================================//
 define([
+    "dojo/_base/array",
     "dojo/_base/declare",
+    "dojo/_base/lang",
     "dojo/Deferred",
     "dojo/dom-construct",
-    "js/SearchDijitHelper",
+    "dojo/json",
+    "esri/dijit/Search",
+    "js/SearchSources",
     "js/lgonlineMap"
 ], function (
+    array,
     declare,
+    lang,
     Deferred,
     domConstruct,
-    SearchDijitHelper
+    JSON,
+    Search,
+    SearchSources
 ) {
 
     //========================================================================================================================//
@@ -105,13 +113,109 @@ define([
          */
         createDijit: function () {
             // Add search control
-            SearchDijitHelper.createSearchDijit(
-                this,
-                this.appConfig.itemInfo.itemData.operationalLayers,
-                this.appConfig.helperServices.geocode,
-                domConstruct.create("div", null, this.rootDiv),
-                true
-            );
+
+            var configuredSearchLayers, requestedLayerNames, requestedFieldNames, searchSources, createdOptions, searchOptions;
+            searchOptions = {
+                map: this.appConfig.map,
+                useMapExtent: true,
+                itemData: this.appConfig.itemInfo.itemData,
+                defined: false
+            };
+
+            // v.3: Check for search configuration via "search" type written into searchLayers object
+            if (this.searchLayers && this.searchLayers.sources && this.searchLayers.sources.length > 0) {
+                searchOptions.applicationConfiguredSources = this.searchLayers.sources;
+                searchOptions.defined = true;
+
+            // v.2: Check for search configuration via "multilayerandfieldselector" type written into searchLayersString string
+            } else if (this.searchLayersString && this.searchLayersString.length > 0) {
+                configuredSearchLayers = (this.searchLayersString instanceof Array) ?
+                    this.searchLayersString : JSON.parse(this.searchLayersString);
+                searchOptions.configuredSearchLayers = configuredSearchLayers;
+                searchOptions.geocoders = this.appConfig.helperServices.geocode;
+                searchOptions.defined = true;
+
+            // v.1: Check for search configuration via a pair of "string" types written into searchLayerName and searchFields
+            } else if (typeof this.searchLayerName === "string" && typeof this.searchFields === "string") {
+                this.searchLayerName = this.searchLayerName.trim();
+                this.searchFields = this.searchFields.trim();
+                if (this.searchLayerName.length > 0 && this.searchFields.length > 0) {
+                    // Convert from a comma-separated list of layer names and a corresponding comma-separated
+                    // list of fields into the multilayerandfieldselector format
+                    // {
+                    //     [{
+                    //         "id": "TaxParcelTIL_9803",
+                    //         "fields": ["PARCELID"],
+                    //         "type": "FeatureLayer"
+                    //     }], [{
+                    //         "id": "TaxParcelTIL_9803",
+                    //         "fields": ["SITEADDRESS"],
+                    //         "type": "FeatureLayer"
+                    //     }]
+                    // }
+
+                    // Create a string that contains every requested field name trimmed and surrounded by commas; we can
+                    // then add a comma to the front and end of each field of a layer and try to find it in this string;
+                    // if found, then we have a valid search field for that layer
+                    requestedFieldNames = "," + (this.searchFields.replace(/\s*,\s*/g, ",")).trim() + ",";
+
+                    // Match requested fields against fields actually in each layer; if a layer has any of the requested
+                    // search fields, add an entry for the layer into searchOptions.configuredSearchLayers
+                    requestedLayerNames = this.searchLayerName.split(",");
+                    searchOptions.configuredSearchLayers = [];
+                    array.forEach(requestedLayerNames, lang.hitch(this, function (requestedLayerName) {
+                        requestedLayer = this.mapObj.getLayer(requestedLayerName.trim());
+                        if (requestedLayer && requestedLayer.url) {
+                            fieldsOfRequestedLayer = requestedLayer.fields ||
+                                (requestedLayer.resourceInfo && requestedLayer.resourceInfo.fields);
+                            if (fieldsOfRequestedLayer) {
+                                // Check each of the fields of this layer against the requested fields
+                                var usableSearchFields = [];
+                                array.forEach(fieldsOfRequestedLayer, function (layerField) {
+                                    if (requestedFieldNames.indexOf("," + layerField.name + ",") >= 0) {
+                                        usableSearchFields.push(layerField.name);
+                                    }
+                                });
+
+                                // Create an entry in the multilayerandfieldselector format
+                                if (usableSearchFields.length > 0) {
+                                    searchOptions.configuredSearchLayers.push({
+                                        "id": requestedLayer.id,
+                                        "fields": usableSearchFields,
+                                        "type": "FeatureLayer"
+                                    });
+                                    searchOptions.defined = true;
+                                }
+                            }
+                        }
+                    }));
+
+                    searchOptions.geocoders = this.appConfig.helperServices.geocode;
+                }
+            }
+
+            // Searching is not configured
+            if (!searchOptions.defined) {
+                this.ready.reject();
+                return;
+            }
+
+            // Format the configuration for the Search dijit
+            searchSources = new SearchSources(searchOptions);
+            createdOptions = searchSources.createOptions();
+
+            if (this.searchLayers && this.searchLayers.activeSourceIndex) {
+                createdOptions.activeSourceIndex = this.searchLayers.activeSourceIndex;
+            } else {
+                createdOptions.activeSourceIndex = "all";
+            }
+
+            // Create the Search dijit
+            var search = new Search(createdOptions, domConstruct.create("div", {
+                id: "search"
+            }, domConstruct.create("div", null, this.rootDiv)));
+            search.startup();
+
             this.ready.resolve(this);
         }
 
