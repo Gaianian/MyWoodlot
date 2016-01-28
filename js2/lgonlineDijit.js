@@ -118,10 +118,8 @@ define([
         createDijit: function () {
             // Add search control
 
-            var v3Sources = [], configuredSearchLayers, configuredDisplayLayers, requestedLayerNames,
-                requestedFieldNames, searchSources, createdOptions, searchOptions;
-
-            //??? itemData: this.appConfig.itemInfo.itemData
+            var searchOptions, dijitSources = [], featureSearchLayers, featureDisplayLayers,
+                featureLayerNames, featureSearchFields, featureDisplayFields;
 
             searchOptions = {
                 map: this.appConfig.map,
@@ -130,11 +128,12 @@ define([
             // v.3: Check for search configuration via "search" type written into searchLayers object
             if (this.searchLayers && this.searchLayers.sources && this.searchLayers.sources.length > 0) {
                 array.forEach(this.searchLayers.sources, lang.hitch(this, function (source) {
+                    var featureLayer = null;
+
                     if (source.locator) {
                         source.locator = new Locator(source.url);
 
                     } else { //feature layer
-                        var featureLayer = null;
                         if (source.flayerId) {
                             featureLayer = this.appConfig.map.getLayer(source.flayerId);
                         }
@@ -148,33 +147,37 @@ define([
                     if (source.searchWithinMap) {
                         source.searchExtent = this.appConfig.map.extent;
                     }
-                    v3Sources.push(source);
+                    dijitSources.push(source);
                 }));
 
             // v.2: Check for search configuration via "multilayerandfieldselector" type; search is in searchLayersString
             // and results display is in displayLayersString
             } else if (this.searchLayersString && this.searchLayersString.length > 0) {
                 // Geocoders; required by Search dijit to work
-                this.addGeocoderSources(this.appConfig.helperServices.geocode, this.appConfig.map.extent, v3Sources);
+                this.addGeocoderSources(this.appConfig.helperServices.geocode, this.appConfig.map.extent, dijitSources);
 
-                v2SearchLayers = (this.searchLayersString instanceof Array) ?
+                // Convert from structured layer names and fields (perhaps stored in a string)
+                // into the "search" type format
+                featureSearchLayers = (this.searchLayersString instanceof Array) ?
                     this.searchLayersString : JSON.parse(this.searchLayersString);
-                v2DisplayLayers = (this.displayLayersString instanceof Array) ?
+                featureDisplayLayers = (this.displayLayersString instanceof Array) ?
                     this.displayLayersString : JSON.parse(this.displayLayersString);
 
-                array.forEach(v2SearchLayers, lang.hitch(this, function (searchLayerSpec) {
-                    var mapLayer = this.appConfig.map.getLayer(searchLayerSpec.id);
+                array.forEach(featureSearchLayers, lang.hitch(this, function (searchLayerSpec) {
+                    var mapLayer, source;
+
+                    mapLayer = this.appConfig.map.getLayer(searchLayerSpec.id);
                     if (mapLayer) {
-                        var source = {};
+                        source = {};
                         source.featureLayer = mapLayer;
                         if (searchLayerSpec.fields && searchLayerSpec.fields.length && searchLayerSpec.fields.length > 0) {
                             source.searchFields = searchLayerSpec.fields;
                             source.placeholder = searchLayerSpec.fields[0];
-                            //source.displayField = searchLayerSpec.fields[0];
+                            source.displayField = searchLayerSpec.fields[0];
                             source.outFields = ["*"];
 
                             // Override displayField if there's a display spec available
-                            array.some(v2DisplayLayers, function (displayLayerSpec) {
+                            array.some(featureDisplayLayers, function (displayLayerSpec) {
                                 if (searchLayerSpec.id === displayLayerSpec.id) {
                                     source.suggestionTemplate = "";
                                     array.forEach(displayLayerSpec.fields, function (displayField){
@@ -186,7 +189,7 @@ define([
                             });
 
                             source.searchExtent = this.appConfig.map.extent;
-                            v3Sources.push(source);
+                            dijitSources.push(source);
                         }
                     }
                 }));
@@ -195,31 +198,32 @@ define([
             // searchFields and its results display written into displayFields string
             } else if (typeof this.searchLayerName === "string" && typeof this.searchFields === "string") {
                 // Geocoders; required by Search dijit to work
-                this.addGeocoderSources(this.appConfig.helperServices.geocode, this.appConfig.map.extent, v3Sources);
+                this.addGeocoderSources(this.appConfig.helperServices.geocode, this.appConfig.map.extent, dijitSources);
 
                 // Convert from a comma-separated list of layer names and a corresponding comma-separated
-                // list of fields into the "multilayerandfieldselector" type format
+                // list of fields into the "search" type format
                 featureLayerNames = this.splitAndTrim(this.searchLayerName);
                 featureSearchFields = this.splitAndTrim(this.searchFields);
                 featureDisplayFields = this.splitAndTrim(this.displayFields);
 
                 array.forEach(featureLayerNames, lang.hitch(this, function (requestedLayerName, i) {
-                    var mapLayer, mapLayerFields, usableSearchFields;
+                    var mapLayer, source, mapLayerFields;
 
                     mapLayer = this.mapObj.getLayer(requestedLayerName);
                     if (mapLayer && mapLayer.url) {
-                        var source = {};
+                        source = {};
                         source.featureLayer = mapLayer.layerObject;
                         source.searchFields = [];
                         source.outFields = ["*"];
 
                         mapLayerFields = mapLayer.fields || (mapLayer.resourceInfo && mapLayer.resourceInfo.fields);
                         if (mapLayerFields) {
+                            // Extract the field names from the field descriptions
                             mapLayerFields = array.map(mapLayerFields, function (field) {
                                 return field.name;
                             });
 
-                            // Check each of the fields of this layer against the requested fields
+                            // Check each of the requested fields against the fields of this layer
                             array.forEach(featureSearchFields, function (searchField) {
                                 if (mapLayerFields.indexOf(searchField) >= 0) {
                                     source.searchFields.push(searchField);
@@ -238,7 +242,7 @@ define([
 
                             if (source.searchFields.length > 0) {
                                 source.searchExtent = this.appConfig.map.extent;
-                                v3Sources.push(source);
+                                dijitSources.push(source);
                             }
                         }
                     }
@@ -246,11 +250,11 @@ define([
             }
 
             // If searching is not configured, search widget is not provided
-            if (!v3Sources) {
+            if (!dijitSources) {
                 this.ready.reject();
                 return;
             }
-            searchOptions.sources = v3Sources;
+            searchOptions.sources = dijitSources;
 
             if (this.searchLayers && this.searchLayers.activeSourceIndex) {
                 searchOptions.activeSourceIndex = this.searchLayers.activeSourceIndex;
@@ -259,10 +263,9 @@ define([
             }
 
             // Create the Search dijit
-            var search = new Search(searchOptions, domConstruct.create("div", {
+            new Search(searchOptions, domConstruct.create("div", {
                 id: "search"
-            }, domConstruct.create("div", null, this.rootDiv)));
-            search.startup();
+            }, domConstruct.create("div", null, this.rootDiv))).startup();
 
             this.ready.resolve(this);
         },
