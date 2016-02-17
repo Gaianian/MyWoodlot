@@ -119,11 +119,14 @@ define([
             // Add search control
 
             var searchOptions, dijitSources = [], featureSearchLayers, featureDisplayLayers,
-                featureLayerNames, featureSearchFields, featureDisplayFields;
+                featureLayerNames, featureSearchFields, featureDisplayFields, searchDijit;
 
             searchOptions = {
                 map: this.appConfig.map,
             };
+            if (this.appConfig.find) {
+                searchOptions.value = decodeURIComponent(this.appConfig.find);
+            }
 
             // v.3: Check for search configuration via "search" type written into searchLayers object
             if (this.searchLayers && this.searchLayers.sources && this.searchLayers.sources.length > 0) {
@@ -263,9 +266,15 @@ define([
             }
 
             // Create the Search dijit
-            new Search(searchOptions, domConstruct.create("div", {
+            searchDijit = new Search(searchOptions, domConstruct.create("div", {
                 id: "search"
-            }, domConstruct.create("div", null, this.rootDiv))).startup();
+            }, domConstruct.create("div", null, this.rootDiv)));
+            searchDijit.startup();
+
+            // If we have a search term in the URL, launch a search for it
+            if (searchOptions.value) {
+                searchDijit.search(searchOptions.value);
+            }
 
             this.ready.resolve(this);
         },
