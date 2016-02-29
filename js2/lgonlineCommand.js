@@ -37,6 +37,7 @@ define([
     "esri/dijit/Legend",
     "esri/dijit/BasemapGallery",
     "esri/dijit/Basemap",
+    "esri/lang",
     "esri/tasks/locator",
     "esri/tasks/PrintTask",
     "esri/tasks/PrintParameters",
@@ -68,6 +69,7 @@ define([
     Legend,
     BasemapGallery,
     Basemap,
+    esriLang,
     Locator,
     PrintTask,
     PrintParameters,
@@ -1576,7 +1578,13 @@ define([
             }
 
             // ASCII SQL search if ""; for Unicode SQL, use "U&" for PostgreSQL and "N" for everything else
-            this.unicodeIdentifier = this.unicodeIdentifier || this.appConfig.defaultUnicodeIdentifier || "";
+            if (!esriLang.isDefined(this.unicodeIdentifier)) {  // from the UI configuration
+                if (esriLang.isDefined(this.appConfig.defaultUnicodeIdentifier)) {  // from the defaults.js file
+                    this.unicodeIdentifier = this.appConfig.defaultUnicodeIdentifier;
+                } else {
+                    this.unicodeIdentifier = "";  // fallback
+                }
+            }
 
             this.setUpWaitForDependency("js.LGSearchFeatureLayer");
         },
