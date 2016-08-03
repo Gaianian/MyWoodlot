@@ -25,7 +25,7 @@
         "colorizer.theme": "EarthBrowns",
         "filter.hint1": "Filter",
         "filter.fieldname1": "",
-        "filter.value1": "",
+        "filter.value1": null,
         "searchBox.hint": "Find",
         "featureSearcher.searchLayersString": "[]",
         "featureSearcher.displayLayersString": "[]",
