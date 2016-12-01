@@ -17,7 +17,7 @@
 [supported browsers]: http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/#supported_browsers
 [ArcGISDesktop]: http://www.esri.com/software/arcgis/arcgis-for-desktop
 [ArcGISServer]: http://www.esri.com/software/arcgis/arcgisserver
-[lifecycle]: http://downloads2.esri.com/support/TechArticles/Product-Life-Cycle.pdf
+[Mature Support]: http://downloads2.esri.com/support/TechArticles/Product-Life-Cycle.pdf
 
 [New to Github? Get started here.]: http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html
 [Finder help]: http://solutions.arcgis.com/local-government/help/finder/
@@ -27,7 +27,7 @@
 
 # local-government-online-apps
 
-This template is in [lifecycle][Mature Support].
+This template is in [Mature Support][].
 
 To build an application with the properties of Finder, consider using the search widget in Basic Viewer or Web AppBuilder to build an application with equivalent searching, printing, and sharing capabilities.
 
