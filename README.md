@@ -17,6 +17,7 @@
 [supported browsers]: http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/#supported_browsers
 [ArcGISDesktop]: http://www.esri.com/software/arcgis/arcgis-for-desktop
 [ArcGISServer]: http://www.esri.com/software/arcgis/arcgisserver
+[lifecycle]: http://downloads2.esri.com/support/TechArticles/Product-Life-Cycle.pdf
 
 [New to Github? Get started here.]: http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html
 [Finder help]: http://solutions.arcgis.com/local-government/help/finder/
@@ -25,6 +26,12 @@
 [LICENSE.txt]: LICENSE.txt
 
 # local-government-online-apps
+
+This template is in [lifecycle][Mature Support].
+
+To build an application with the properties of Finder, consider using the search widget in Basic Viewer or Web AppBuilder to build an application with equivalent searching, printing, and sharing capabilities.
+
+To build an application with the properties of Find, Edit, Filter, consider using the Search, Group Filter, and Smart Editor widgets in Web AppBuilder to build an application with equivalent searching, filtering, and editing capabilities.
 
 Two applications use the code in this repository. Finder is a configurable web app template that searches and queries attributes of feature layers. Find, Edit, and Filter also has this functionality, with the addition of filtering and editing features. These apps are two configurations of the code found in this repository.
 
